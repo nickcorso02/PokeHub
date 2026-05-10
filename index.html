@@ -239,6 +239,25 @@ html,body{background:var(--dark);color:var(--text);font-family:var(--fb);font-si
   </div>
 </div>
 
+<!-- IMAGE FIX OVERLAY -->
+<div class="overlay" id="fix-overlay" onclick="if(event.target===this)closeFixImg()">
+  <div class="modal" style="width:620px">
+    <button class="mx" onclick="closeFixImg()">✕</button>
+    <div class="ftitle" style="font-size:22px;margin-bottom:6px">Fix Card Image</div>
+    <div id="fix-card-name" style="color:var(--muted);font-size:13px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input class="fctrl" id="fix-search" placeholder="Search card name (e.g. Charizard ex)…" style="margin-bottom:0;flex:1" onkeydown="if(event.key==='Enter')searchFixImg()">
+      <button class="btn-buy" style="white-space:nowrap;padding:0 18px" onclick="searchFixImg()">Search</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Or paste a pokemontcg.io card ID directly:</div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <input class="fctrl" id="fix-manual-id" placeholder="e.g. sv3pt5-199" style="margin-bottom:0;flex:1">
+      <button class="btn-buy" style="white-space:nowrap;padding:0 18px" onclick="applyManualId()">Apply</button>
+    </div>
+    <div id="fix-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;max-height:340px;overflow-y:auto"></div>
+  </div>
+</div>
+
 <!-- DETAIL OVERLAY -->
 <div class="overlay" id="doverlay" onclick="if(event.target===this)closeDet()">
   <div class="modal"><button class="mx" onclick="closeDet()">✕</button><div id="dbody"></div></div>
@@ -305,135 +324,126 @@ async function fetchCardImg(apiId, fallbackEl) {
     const url = d.data?.images?.large || d.data?.images?.small;
     if(url){ IMG_CACHE[apiId]=url; fallbackEl.src=url; }
   } catch(e){}
-}
-function lazyLoad() {
-  document.querySelectorAll('img[data-apiid]').forEach(img => {
-    if(!img.dataset.loaded) {
-      img.dataset.loaded = '1';
-      fetchCardImg(img.dataset.apiid, img);
-    }
-  });
-}
 
 // ── GRADED CARDS ──
 // apiId = official pokemontcg.io card ID (set-number format)
 let cards = [
-  {id:1, name:"Pikachu with Grey Felt Hat",set:"Scarlet & Violet Promo",num:"085",cond:"GEM",grader:"PSA",grade:10,price:3174.91,type:"sell",apiId:"svp-85",qty:1},
-  {id:2, name:"Giratina V (Alternate Full Art)",set:"Lost Origin",num:"186/196",cond:"GEM",grader:"PSA",grade:10,price:3161.04,type:"sell",apiId:"swsh11-186",qty:1},
-  {id:3, name:"Mega Charizard X ex",set:"Phantasmal Flames",num:"125/094",cond:"GEM",grader:"PSA",grade:10,price:2784.25,type:"sell",apiId:"sv8-125",qty:1},
-  {id:4, name:"Charizard ex",set:"SV: 151",num:"199/165",cond:"GEM",grader:"PSA",grade:10,price:1765.71,type:"sell",apiId:"sv3pt5-199",qty:1},
-  {id:5, name:"Team Rocket's Mewtwo ex",set:"Destined Rivals",num:"231/182",cond:"GEM",grader:"PSA",grade:10,price:1475.84,type:"sell",apiId:"sv9-231",qty:1},
-  {id:6, name:"Greninja ex",set:"Twilight Masquerade",num:"214/167",cond:"GEM",grader:"PSA",grade:10,price:986.31,type:"sell",apiId:"sv6-214",qty:1},
-  {id:7, name:"Blastoise ex",set:"SV: 151",num:"200/165",cond:"GEM",grader:"PSA",grade:10,price:672.63,type:"sell",apiId:"sv3pt5-200",qty:1},
-  {id:8, name:"Mewtwo VSTAR",set:"Crown Zenith: Galarian Gallery",num:"GG44/GG70",cond:"GEM",grader:"PSA",grade:10,price:668.47,type:"sell",apiId:"swsh12pt5gg-GG44",qty:1},
-  {id:9, name:"Mew",set:"Crown Zenith: Galarian Gallery",num:"GG10/GG70",cond:"GEM",grader:"PSA",grade:10,price:662.74,type:"sell",apiId:"swsh12pt5gg-GG10",qty:1},
-  {id:10,name:"Charizard",set:"Celebrations: Classic Collection",num:"4/102",cond:"GEM",grader:"PSA",grade:10,price:620.25,type:"sell",apiId:"cel25c-4",qty:1},
-  {id:11,name:"Mew ex (151 Metal Card)",set:"SV: 151",num:"205/165",cond:"GEM",grader:"PSA",grade:10,price:592.57,type:"sell",apiId:"sv3pt5-205",qty:1},
-  {id:12,name:"Giratina VSTAR (Secret)",set:"Crown Zenith: Galarian Gallery",num:"GG69/GG70",cond:"GEM",grader:"PSA",grade:10,price:587.37,type:"sell",apiId:"swsh12pt5gg-GG69",qty:1},
-  {id:13,name:"Zekrom ex",set:"Black Bolt",num:"166/086",cond:"GEM",grader:"PSA",grade:10,price:569.22,type:"sell",apiId:"sv8pt5-166",qty:1},
-  {id:14,name:"Pikachu V",set:"Lost Origin Trainer Gallery",num:"TG16/TG30",cond:"GEM",grader:"PSA",grade:10,price:528.91,type:"sell",apiId:"swsh11tg-TG16",qty:1},
-  {id:15,name:"Reshiram ex",set:"White Flare",num:"166/086",cond:"GEM",grader:"PSA",grade:10,price:526.68,type:"sell",apiId:"sv8pt5-166",qty:1},
-  {id:16,name:"Venusaur ex",set:"SV: 151",num:"198/165",cond:"GEM",grader:"PSA",grade:10,price:515.84,type:"sell",apiId:"sv3pt5-198",qty:1},
-  {id:17,name:"Umbreon (CN)",set:"Gem Pack 2",num:"015/15",cond:"GEM",grader:"PSA",grade:10,price:474.80,type:"sell",apiId:"swsh12pt5gg-GG17",qty:1},
-  {id:18,name:"Moltres & Zapdos & Articuno GX",set:"Sun & Moon Promo",num:"SM210",cond:"GEM",grader:"PSA",grade:10,price:421.89,type:"sell",apiId:"smp-SM210",qty:1},
-  {id:19,name:"Arceus VSTAR (Secret)",set:"Crown Zenith: Galarian Gallery",num:"GG70/GG70",cond:"GEM",grader:"PSA",grade:10,price:414.87,type:"sell",apiId:"swsh12pt5gg-GG70",qty:1},
-  {id:20,name:"Darkrai VSTAR",set:"Crown Zenith: Galarian Gallery",num:"GG50/GG70",cond:"GEM",grader:"PSA",grade:10,price:383.63,type:"sell",apiId:"swsh12pt5gg-GG50",qty:1},
-  {id:21,name:"Origin Forme Dialga VSTAR (Secret)",set:"Crown Zenith: Galarian Gallery",num:"GG68/GG70",cond:"GEM",grader:"PSA",grade:10,price:340,type:"sell",apiId:"swsh12pt5gg-GG68",qty:1},
-  {id:22,name:"Origin Forme Palkia VSTAR (Secret)",set:"Crown Zenith: Galarian Gallery",num:"GG67/GG70",cond:"GEM",grader:"PSA",grade:10,price:318.64,type:"sell",apiId:"swsh12pt5gg-GG67",qty:1},
-  {id:23,name:"Gardevoir ex",set:"Scarlet & Violet Base Set",num:"245/198",cond:"GEM",grader:"PSA",grade:10,price:242.38,type:"sell",apiId:"sv1-245",qty:1},
-  {id:24,name:"Garchomp & Giratina GX",set:"Unified Minds",num:"146/236",cond:"GEM",grader:"PSA",grade:10,price:222.55,type:"sell",apiId:"sm11-146",qty:1},
-  {id:25,name:"Raikou V",set:"Crown Zenith: Galarian Gallery",num:"GG41/GG70",cond:"GEM",grader:"PSA",grade:10,price:195.90,type:"sell",apiId:"swsh12pt5gg-GG41",qty:2},
-  {id:26,name:"Moltres & Zapdos & Articuno GX",set:"Hidden Fates",num:"44/68",cond:"GEM",grader:"PSA",grade:10,price:171.42,type:"sell",apiId:"sma-44",qty:1},
-  {id:27,name:"Glaceon VSTAR",set:"Crown Zenith: Galarian Gallery",num:"GG40/GG70",cond:"GEM",grader:"PSA",grade:10,price:166.79,type:"sell",apiId:"swsh12pt5gg-GG40",qty:1},
-  {id:28,name:"Charizard V",set:"Crown Zenith",num:"018/159",cond:"GEM",grader:"PSA",grade:10,price:166.44,type:"sell",apiId:"swsh12pt5-18",qty:1},
-  {id:29,name:"Charizard ex",set:"Scarlet & Violet Promo",num:"074",cond:"GEM",grader:"PSA",grade:10,price:163.40,type:"sell",apiId:"svp-74",qty:1},
-  {id:30,name:"Giovanni's Charisma",set:"SV: 151",num:"204/165",cond:"GEM",grader:"PSA",grade:10,price:150.43,type:"sell",apiId:"sv3pt5-204",qty:1},
-  {id:31,name:"Blastoise",set:"Celebrations: Classic Collection",num:"2/102",cond:"GEM",grader:"PSA",grade:10,price:142.17,type:"sell",apiId:"cel25c-2",qty:1},
-  {id:32,name:"Bulbasaur",set:"Mega Evolution",num:"133/132",cond:"GEM",grader:"PSA",grade:10,price:139.79,type:"sell",apiId:"sv7-133",qty:1},
-  {id:33,name:"Venusaur",set:"Celebrations: Classic Collection",num:"15/102",cond:"GEM",grader:"PSA",grade:10,price:127.06,type:"sell",apiId:"cel25c-15",qty:1},
-  {id:34,name:"Bulbasaur",set:"Stellar Crown",num:"143/142",cond:"MINT9",grader:"PSA",grade:9,price:122.41,type:"sell",apiId:"sv7-143",qty:1},
-  {id:35,name:"Samurott",set:"Black and White",num:"31",cond:"GEM",grader:"PSA",grade:10,price:110.50,type:"sell",apiId:"bw1-31",qty:1},
-  {id:36,name:"Marshadow",set:"Mega Evolution",num:"146/132",cond:"GEM",grader:"PSA",grade:10,price:110.32,type:"sell",apiId:"sv7-146",qty:1},
-  {id:37,name:"N's Plan",set:"Black Bolt",num:"170/086",cond:"GEM",grader:"PSA",grade:10,price:109.45,type:"sell",apiId:"sv8pt5-170",qty:1},
-  {id:38,name:"Dark Gyarados",set:"Celebrations: Classic Collection",num:"8/82",cond:"GEM",grader:"PSA",grade:10,price:99.96,type:"sell",apiId:"cel25c-8",qty:1},
-  {id:39,name:"Mega Charizard X ex",set:"Phantasmal Flames",num:"013/094",cond:"GEM",grader:"PSA",grade:10,price:92.04,type:"sell",apiId:"sv8-13",qty:1},
-  {id:40,name:"Mega Lucario ex",set:"Mega Evolution",num:"160/132",cond:"GEM",grader:"PSA",grade:10,price:90.80,type:"sell",apiId:"sv7-160",qty:1},
-  {id:41,name:"Magnezone",set:"Crown Zenith: Galarian Gallery",num:"GG18/GG70",cond:"GEM",grader:"PSA",grade:10,price:84.17,type:"sell",apiId:"swsh12pt5gg-GG18",qty:1},
-  {id:42,name:"Pikachu ex",set:"Surging Sparks",num:"057/191",cond:"GEM",grader:"PSA",grade:10,price:76.97,type:"sell",apiId:"sv8-57",qty:1},
-  {id:43,name:"Lt. Surge's Bargain",set:"Mega Evolution",num:"185/132",cond:"GEM",grader:"PSA",grade:10,price:76.12,type:"sell",apiId:"sv7-185",qty:1},
-  {id:44,name:"Greninja & Zoroark GX (JP)",set:"Night Unison",num:"025/055",cond:"GEM",grader:"PSA",grade:10,price:75.67,type:"sell",apiId:"smp-SM210",qty:1},
-  {id:45,name:"Yamper",set:"Phantasmal Flames",num:"099/094",cond:"GEM",grader:"PSA",grade:10,price:64.64,type:"sell",apiId:"sv8-99",qty:1},
-  {id:46,name:"Pikachu",set:"Trick or Trade BOOster Bundle 2023",num:"062/193",cond:"GEM",grader:"PSA",grade:10,price:62.40,type:"sell",apiId:"swsh10-62",qty:1},
-  {id:47,name:"Exeggutor",set:"Mega Evolution",num:"135/132",cond:"GEM",grader:"PSA",grade:10,price:54.40,type:"sell",apiId:"sv7-135",qty:1},
-  {id:48,name:"Bloodmoon Ursaluna ex",set:"Twilight Masquerade",num:"222/167",cond:"GEM",grader:"PSA",grade:10,price:54.00,type:"sell",apiId:"sv6-222",qty:1},
-  {id:49,name:"Lapras",set:"Crown Zenith: Galarian Gallery",num:"GG05/GG70",cond:"NM",grader:"",grade:null,price:22.15,type:"sell",apiId:"swsh12pt5gg-GG05",qty:2},
-  {id:50,name:"Blissey ex",set:"Twilight Masquerade",num:"134/167",cond:"GEM",grader:"PSA",grade:10,price:20.00,type:"sell",apiId:"sv6-134",qty:1},
-  {id:51,name:"Deoxys",set:"Crown Zenith: Galarian Gallery",num:"GG12/GG70",cond:"NM",grader:"",grade:null,price:18.57,type:"sell",apiId:"swsh12pt5gg-GG12",qty:1},
-  {id:52,name:"Ditto",set:"Crown Zenith: Galarian Gallery",num:"GG22/GG70",cond:"NM",grader:"",grade:null,price:18.20,type:"sell",apiId:"swsh12pt5gg-GG22",qty:1},
-  {id:53,name:"Latias",set:"Crown Zenith: Galarian Gallery",num:"GG20/GG70",cond:"NM",grader:"",grade:null,price:17.98,type:"sell",apiId:"swsh12pt5gg-GG20",qty:1},
-  {id:54,name:"Radiant Charizard",set:"Crown Zenith",num:"020/159",cond:"NM",grader:"",grade:null,price:12.99,type:"sell",apiId:"swsh12pt5-20",qty:1},
+  {id:1, name:"Pikachu with Grey Felt Hat",set:"Scarlet & Violet Promo",num:"085",cond:"GEM",grader:"PSA",grade:10,price:3333.66,type:"sell",apiId:"svp-85",qty:1},
+  {id:2, name:"Giratina V (Alternate Full Art)",set:"Lost Origin",num:"186/196",cond:"GEM",grader:"PSA",grade:10,price:3319.09,type:"sell",apiId:"swsh11-186",qty:1},
+  {id:3, name:"Mega Charizard X ex",set:"Phantasmal Flames",num:"125/094",cond:"GEM",grader:"PSA",grade:10,price:2923.46,type:"sell",apiId:"sv8-125",qty:1},
+  {id:4, name:"Charizard ex",set:"SV: 151",num:"199/165",cond:"GEM",grader:"PSA",grade:10,price:1854.00,type:"sell",apiId:"sv3pt5-199",qty:1},
+  {id:5, name:"Team Rocket's Mewtwo ex",set:"Destined Rivals",num:"231/182",cond:"GEM",grader:"PSA",grade:10,price:1549.63,type:"sell",apiId:"sv9-231",qty:1},
+  {id:6, name:"Greninja ex",set:"Twilight Masquerade",num:"214/167",cond:"GEM",grader:"PSA",grade:10,price:1025.76,type:"sell",apiId:"sv6-214",qty:1},
+  {id:7, name:"Blastoise ex",set:"SV: 151",num:"200/165",cond:"GEM",grader:"PSA",grade:10,price:699.54,type:"sell",apiId:"sv3pt5-200",qty:1},
+  {id:8, name:"Mewtwo VSTAR",set:"Crown Zenith: Galarian Gallery",num:"GG44/GG70",cond:"GEM",grader:"PSA",grade:10,price:695.21,type:"sell",apiId:"swsh12pt5gg-GG44",qty:1},
+  {id:9, name:"Mew",set:"Crown Zenith: Galarian Gallery",num:"GG10/GG70",cond:"GEM",grader:"PSA",grade:10,price:689.25,type:"sell",apiId:"swsh12pt5gg-GG10",qty:1},
+  {id:10,name:"Charizard",set:"Celebrations: Classic Collection",num:"4/102",cond:"GEM",grader:"PSA",grade:10,price:645.06,type:"sell",apiId:"cel25c-4",qty:1},
+  {id:11,name:"Mew ex (151 Metal Card)",set:"SV: 151",num:"205/165",cond:"GEM",grader:"PSA",grade:10,price:616.27,type:"sell",apiId:"sv3pt5-205",qty:1},
+  {id:12,name:"Giratina VSTAR (Secret)",set:"Crown Zenith: Galarian Gallery",num:"GG69/GG70",cond:"GEM",grader:"PSA",grade:10,price:610.86,type:"sell",apiId:"swsh12pt5gg-GG69",qty:1},
+  {id:13,name:"Zekrom ex",set:"Black Bolt",num:"166/086",cond:"GEM",grader:"PSA",grade:10,price:591.99,type:"sell",apiId:"sv8pt5-166",qty:1},
+  {id:14,name:"Pikachu V",set:"Lost Origin Trainer Gallery",num:"TG16/TG30",cond:"GEM",grader:"PSA",grade:10,price:550.07,type:"sell",apiId:"swsh11tg-TG16",qty:1},
+  {id:15,name:"Reshiram ex",set:"White Flare",num:"166/086",cond:"GEM",grader:"PSA",grade:10,price:547.75,type:"sell",apiId:"sv8pt5-166",qty:1},
+  {id:16,name:"Venusaur ex",set:"SV: 151",num:"198/165",cond:"GEM",grader:"PSA",grade:10,price:536.47,type:"sell",apiId:"sv3pt5-198",qty:1},
+  {id:17,name:"Umbreon (CN)",set:"Gem Pack 2",num:"015/15",cond:"GEM",grader:"PSA",grade:10,price:493.79,type:"sell",apiId:"swsh12pt5gg-GG17",qty:1},
+  {id:18,name:"Moltres & Zapdos & Articuno GX",set:"Sun & Moon Promo",num:"SM210",cond:"GEM",grader:"PSA",grade:10,price:438.77,type:"sell",apiId:"smp-SM210",qty:1},
+  {id:19,name:"Arceus VSTAR (Secret)",set:"Crown Zenith: Galarian Gallery",num:"GG70/GG70",cond:"GEM",grader:"PSA",grade:10,price:431.46,type:"sell",apiId:"swsh12pt5gg-GG70",qty:1},
+  {id:20,name:"Darkrai VSTAR",set:"Crown Zenith: Galarian Gallery",num:"GG50/GG70",cond:"GEM",grader:"PSA",grade:10,price:398.98,type:"sell",apiId:"swsh12pt5gg-GG50",qty:1},
+  {id:21,name:"Origin Forme Dialga VSTAR (Secret)",set:"Crown Zenith: Galarian Gallery",num:"GG68/GG70",cond:"GEM",grader:"PSA",grade:10,price:353.60,type:"sell",apiId:"swsh12pt5gg-GG68",qty:1},
+  {id:22,name:"Origin Forme Palkia VSTAR (Secret)",set:"Crown Zenith: Galarian Gallery",num:"GG67/GG70",cond:"GEM",grader:"PSA",grade:10,price:331.39,type:"sell",apiId:"swsh12pt5gg-GG67",qty:1},
+  {id:23,name:"Gardevoir ex",set:"Scarlet & Violet Base Set",num:"245/198",cond:"GEM",grader:"PSA",grade:10,price:252.08,type:"sell",apiId:"sv1-245",qty:1},
+  {id:24,name:"Garchomp & Giratina GX",set:"Unified Minds",num:"146/236",cond:"GEM",grader:"PSA",grade:10,price:231.45,type:"sell",apiId:"sm11-146",qty:1},
+  {id:25,name:"Raikou V",set:"Crown Zenith: Galarian Gallery",num:"GG41/GG70",cond:"GEM",grader:"PSA",grade:10,price:203.74,type:"sell",apiId:"swsh12pt5gg-GG41",qty:2},
+  {id:26,name:"Moltres & Zapdos & Articuno GX",set:"Hidden Fates",num:"44/68",cond:"GEM",grader:"PSA",grade:10,price:178.28,type:"sell",apiId:"sma-44",qty:1},
+  {id:27,name:"Glaceon VSTAR",set:"Crown Zenith: Galarian Gallery",num:"GG40/GG70",cond:"GEM",grader:"PSA",grade:10,price:173.46,type:"sell",apiId:"swsh12pt5gg-GG40",qty:1},
+  {id:28,name:"Charizard V",set:"Crown Zenith",num:"018/159",cond:"GEM",grader:"PSA",grade:10,price:173.10,type:"sell",apiId:"swsh12pt5-18",qty:1},
+  {id:29,name:"Charizard ex",set:"Scarlet & Violet Promo",num:"074",cond:"GEM",grader:"PSA",grade:10,price:169.94,type:"sell",apiId:"svp-74",qty:1},
+  {id:30,name:"Giovanni's Charisma",set:"SV: 151",num:"204/165",cond:"GEM",grader:"PSA",grade:10,price:156.45,type:"sell",apiId:"sv3pt5-204",qty:1},
+  {id:31,name:"Blastoise",set:"Celebrations: Classic Collection",num:"2/102",cond:"GEM",grader:"PSA",grade:10,price:147.86,type:"sell",apiId:"cel25c-2",qty:1},
+  {id:32,name:"Bulbasaur",set:"Mega Evolution",num:"133/132",cond:"GEM",grader:"PSA",grade:10,price:145.38,type:"sell",apiId:"sv7-133",qty:1},
+  {id:33,name:"Venusaur",set:"Celebrations: Classic Collection",num:"15/102",cond:"GEM",grader:"PSA",grade:10,price:132.14,type:"sell",apiId:"cel25c-15",qty:1},
+  {id:34,name:"Bulbasaur",set:"Stellar Crown",num:"143/142",cond:"MINT9",grader:"PSA",grade:9,price:127.31,type:"sell",apiId:"sv7-143",qty:1},
+  {id:35,name:"Samurott",set:"Black and White",num:"31",cond:"GEM",grader:"PSA",grade:10,price:114.92,type:"sell",apiId:"bw1-31",qty:1},
+  {id:36,name:"Marshadow",set:"Mega Evolution",num:"146/132",cond:"GEM",grader:"PSA",grade:10,price:114.73,type:"sell",apiId:"sv7-146",qty:1},
+  {id:37,name:"N's Plan",set:"Black Bolt",num:"170/086",cond:"GEM",grader:"PSA",grade:10,price:113.83,type:"sell",apiId:"sv8pt5-170",qty:1},
+  {id:38,name:"Dark Gyarados",set:"Celebrations: Classic Collection",num:"8/82",cond:"GEM",grader:"PSA",grade:10,price:103.96,type:"sell",apiId:"cel25c-8",qty:1},
+  {id:39,name:"Mega Charizard X ex",set:"Phantasmal Flames",num:"013/094",cond:"GEM",grader:"PSA",grade:10,price:95.72,type:"sell",apiId:"sv8-13",qty:1},
+  {id:40,name:"Mega Lucario ex",set:"Mega Evolution",num:"160/132",cond:"GEM",grader:"PSA",grade:10,price:94.43,type:"sell",apiId:"sv7-160",qty:1},
+  {id:41,name:"Magnezone",set:"Crown Zenith: Galarian Gallery",num:"GG18/GG70",cond:"GEM",grader:"PSA",grade:10,price:87.54,type:"sell",apiId:"swsh12pt5gg-GG18",qty:1},
+  {id:42,name:"Pikachu ex",set:"Surging Sparks",num:"057/191",cond:"GEM",grader:"PSA",grade:10,price:80.05,type:"sell",apiId:"sv8-57",qty:1},
+  {id:43,name:"Lt. Surge's Bargain",set:"Mega Evolution",num:"185/132",cond:"GEM",grader:"PSA",grade:10,price:79.16,type:"sell",apiId:"sv7-185",qty:1},
+  {id:44,name:"Greninja & Zoroark GX (JP)",set:"Night Unison",num:"025/055",cond:"GEM",grader:"PSA",grade:10,price:78.70,type:"sell",apiId:"smp-SM210",qty:1},
+  {id:45,name:"Yamper",set:"Phantasmal Flames",num:"099/094",cond:"GEM",grader:"PSA",grade:10,price:67.23,type:"sell",apiId:"sv8-99",qty:1},
+  {id:46,name:"Pikachu",set:"Trick or Trade BOOster Bundle 2023",num:"062/193",cond:"GEM",grader:"PSA",grade:10,price:64.90,type:"sell",apiId:"swsh10-62",qty:1},
+  {id:47,name:"Exeggutor",set:"Mega Evolution",num:"135/132",cond:"GEM",grader:"PSA",grade:10,price:56.58,type:"sell",apiId:"sv7-135",qty:1},
+  {id:48,name:"Bloodmoon Ursaluna ex",set:"Twilight Masquerade",num:"222/167",cond:"GEM",grader:"PSA",grade:10,price:56.16,type:"sell",apiId:"sv6-222",qty:1},
+  {id:49,name:"Lapras",set:"Crown Zenith: Galarian Gallery",num:"GG05/GG70",cond:"NM",grader:"",grade:null,price:23.04,type:"sell",apiId:"swsh12pt5gg-GG05",qty:2},
+  {id:50,name:"Blissey ex",set:"Twilight Masquerade",num:"134/167",cond:"GEM",grader:"PSA",grade:10,price:20.80,type:"sell",apiId:"sv6-134",qty:1},
+  {id:51,name:"Deoxys",set:"Crown Zenith: Galarian Gallery",num:"GG12/GG70",cond:"NM",grader:"",grade:null,price:19.31,type:"sell",apiId:"swsh12pt5gg-GG12",qty:1},
+  {id:52,name:"Ditto",set:"Crown Zenith: Galarian Gallery",num:"GG22/GG70",cond:"NM",grader:"",grade:null,price:18.93,type:"sell",apiId:"swsh12pt5gg-GG22",qty:1},
+  {id:53,name:"Latias",set:"Crown Zenith: Galarian Gallery",num:"GG20/GG70",cond:"NM",grader:"",grade:null,price:18.70,type:"sell",apiId:"swsh12pt5gg-GG20",qty:1},
+  {id:54,name:"Radiant Charizard",set:"Crown Zenith",num:"020/159",cond:"NM",grader:"",grade:null,price:13.51,type:"sell",apiId:"swsh12pt5-20",qty:1},
 ];
 
 // ── SEALED PRODUCT ──
 // img = reliable public image URLs for sealed products
 let sealed = [
-  {id:101,name:"151 Ultra-Premium Collection",set:"SV: 151",price:903.54,img:"https://images.pokemontcg.io/sv3pt5/logo.png",qty:1},
-  {id:102,name:"151 Elite Trainer Box",set:"SV: 151",price:684.66,img:"https://images.pokemontcg.io/sv3pt5/logo.png",qty:2},
-  {id:103,name:"Evolving Skies ETB [Flareon/Jolteon/Umbreon/Leafeon]",set:"Evolving Skies",price:549.96,img:"https://images.pokemontcg.io/swsh7/logo.png",qty:1},
-  {id:104,name:"Evolving Skies ETB [Glaceon/Vaporeon/Sylveon/Espeon]",set:"Evolving Skies",price:529.62,img:"https://images.pokemontcg.io/swsh7/logo.png",qty:1},
-  {id:105,name:"Hidden Fates Elite Trainer Box",set:"Hidden Fates",price:502.44,img:"https://images.pokemontcg.io/sma/logo.png",qty:2},
-  {id:106,name:"Prismatic Evolutions Super Premium Collection",set:"Prismatic Evolutions",price:345.70,img:"https://images.pokemontcg.io/sv8pt5/logo.png",qty:1},
-  {id:107,name:"Crown Zenith Elite Trainer Box",set:"Crown Zenith",price:334.77,img:"https://images.pokemontcg.io/swsh12pt5/logo.png",qty:2},
-  {id:108,name:"Prismatic Evolutions Premium Figure Collection",set:"Prismatic Evolutions",price:240.97,img:"https://images.pokemontcg.io/sv8pt5/logo.png",qty:1},
-  {id:109,name:"Mega Charizard X ex Ultra Premium Collection",set:"Miscellaneous",price:235.10,img:"https://images.pokemontcg.io/sv8/logo.png",qty:2},
-  {id:110,name:"151 Booster Bundle",set:"SV: 151",price:215.99,img:"https://images.pokemontcg.io/sv3pt5/logo.png",qty:5},
-  {id:111,name:"Destined Rivals Elite Trainer Box",set:"Destined Rivals",price:201.78,img:"https://images.pokemontcg.io/sv9/logo.png",qty:3},
-  {id:112,name:"Crown Zenith Booster Bundle",set:"Crown Zenith",price:189.03,img:"https://images.pokemontcg.io/swsh12pt5/logo.png",qty:1},
-  {id:113,name:"Ascended Heroes Elite Trainer Box",set:"Ascended Heroes",price:180.58,img:"https://images.pokemontcg.io/sv9/logo.png",qty:4},
-  {id:114,name:"Prismatic Evolutions Elite Trainer Box",set:"Prismatic Evolutions",price:163.75,img:"https://images.pokemontcg.io/sv8pt5/logo.png",qty:4},
-  {id:115,name:"Phantasmal Flames Elite Trainer Box",set:"Phantasmal Flames",price:131.21,img:"https://images.pokemontcg.io/sv8/logo.png",qty:3},
-  {id:116,name:"Journey Together Elite Trainer Box",set:"Journey Together",price:118.40,img:"https://images.pokemontcg.io/sv9/logo.png",qty:3},
-  {id:117,name:"Black Bolt Elite Trainer Box",set:"Black Bolt",price:113.68,img:"https://images.pokemontcg.io/sv8pt5/logo.png",qty:4},
-  {id:118,name:"Twilight Masquerade Elite Trainer Box",set:"Twilight Masquerade",price:110.03,img:"https://images.pokemontcg.io/sv6/logo.png",qty:3},
-  {id:119,name:"Surging Sparks Elite Trainer Box",set:"Surging Sparks",price:107.09,img:"https://images.pokemontcg.io/sv8/logo.png",qty:1},
-  {id:120,name:"Mega Evolution ETB [Mega Gardevoir]",set:"Mega Evolution",price:104.82,img:"https://images.pokemontcg.io/sv7/logo.png",qty:1},
-  {id:121,name:"Mega Evolution ETB [Mega Lucario]",set:"Mega Evolution",price:101.37,img:"https://images.pokemontcg.io/sv7/logo.png",qty:2},
-  {id:122,name:"Prismatic Evolutions Booster Bundle",set:"Prismatic Evolutions",price:99.27,img:"https://images.pokemontcg.io/sv8pt5/logo.png",qty:2},
-  {id:123,name:"White Flare Elite Trainer Box",set:"White Flare",price:97.32,img:"https://images.pokemontcg.io/sv8pt5/logo.png",qty:2},
-  {id:124,name:"Evolving Skies Sleeved Booster Pack",set:"Evolving Skies",price:77.55,img:"https://images.pokemontcg.io/swsh7/logo.png",qty:10},
-  {id:125,name:"Destined Rivals Booster Bundle",set:"Destined Rivals",price:73.07,img:"https://images.pokemontcg.io/sv9/logo.png",qty:1},
-  {id:126,name:"Perfect Order Elite Trainer Box",set:"Perfect Order",price:72.35,img:"https://images.pokemontcg.io/sv9/logo.png",qty:2},
-  {id:127,name:"Phantasmal Flames Booster Bundle",set:"Phantasmal Flames",price:68.97,img:"https://images.pokemontcg.io/sv8/logo.png",qty:1},
-  {id:128,name:"Mega Venusaur ex Premium Collection",set:"Miscellaneous",price:65.41,img:"https://images.pokemontcg.io/sv7/logo.png",qty:2},
-  {id:129,name:"White Flare Booster Bundle",set:"White Flare",price:63.03,img:"https://images.pokemontcg.io/sv8pt5/logo.png",qty:1},
-  {id:130,name:"Eevee Evolutions Tin [Jolteon V]",set:"Evolving Skies",price:62.50,img:"https://images.pokemontcg.io/swsh7/logo.png",qty:1},
-  {id:131,name:"Unova Victini Illustration Collection",set:"Black Bolt",price:62.37,img:"https://images.pokemontcg.io/sv8pt5/logo.png",qty:2},
-  {id:132,name:"Mega Evolution Booster Bundle",set:"Mega Evolution",price:61.52,img:"https://images.pokemontcg.io/sv7/logo.png",qty:2},
-  {id:133,name:"Charizard ex Special Collection",set:"Miscellaneous",price:60.26,img:"https://images.pokemontcg.io/sv8/logo.png",qty:1},
-  {id:134,name:"Surging Sparks Booster Bundle",set:"Surging Sparks",price:54.70,img:"https://images.pokemontcg.io/sv8/logo.png",qty:2},
-  {id:135,name:"Ascended Heroes Mega Emboar ex Box",set:"Ascended Heroes",price:51.78,img:"https://images.pokemontcg.io/sv9/logo.png",qty:1},
-  {id:136,name:"Ascended Heroes Mega Meganium ex Box",set:"Ascended Heroes",price:51.57,img:"https://images.pokemontcg.io/sv9/logo.png",qty:1},
-  {id:137,name:"Ascended Heroes Mega Feraligatr ex Box",set:"Ascended Heroes",price:51.05,img:"https://images.pokemontcg.io/sv9/logo.png",qty:1},
-  {id:138,name:"Journey Together Booster Bundle",set:"Journey Together",price:47.38,img:"https://images.pokemontcg.io/sv9/logo.png",qty:1},
-  {id:139,name:"Mega Charizard Tin (Mega Charizard X)",set:"Miscellaneous",price:42.08,img:"https://images.pokemontcg.io/sv8/logo.png",qty:2},
-  {id:140,name:"Perfect Order Booster Bundle",set:"Perfect Order",price:41.84,img:"https://images.pokemontcg.io/sv9/logo.png",qty:2},
-  {id:141,name:"Mega Charizard Tin (Mega Charizard Y)",set:"Miscellaneous",price:38.72,img:"https://images.pokemontcg.io/sv8/logo.png",qty:1},
-  {id:142,name:"Mega Latias ex Box",set:"Miscellaneous",price:38.08,img:"https://images.pokemontcg.io/sv7/logo.png",qty:1},
-  {id:143,name:"Fusion Strike Sleeved Booster Pack",set:"Fusion Strike",price:25.69,img:"https://images.pokemontcg.io/swsh8/logo.png",qty:10},
-  {id:144,name:"Lost Origin Sleeved Booster Pack",set:"Lost Origin",price:19.18,img:"https://images.pokemontcg.io/swsh11/logo.png",qty:10},
-  {id:145,name:"Brilliant Stars Sleeved Booster Pack",set:"Brilliant Stars",price:16.31,img:"https://images.pokemontcg.io/swsh9/logo.png",qty:10},
-  {id:146,name:"Silver Tempest Sleeved Booster Pack",set:"Silver Tempest",price:15.03,img:"https://images.pokemontcg.io/swsh12/logo.png",qty:10},
-  {id:147,name:"Paldea Evolved Sleeved Booster Pack",set:"Paldea Evolved",price:14.70,img:"https://images.pokemontcg.io/sv2/logo.png",qty:10},
-  {id:148,name:"Obsidian Flames Sleeved Booster Pack",set:"Obsidian Flames",price:12.17,img:"https://images.pokemontcg.io/sv3/logo.png",qty:10},
-  {id:149,name:"Phantasmal Flames Sleeved Booster Pack",set:"Phantasmal Flames",price:12.08,img:"https://images.pokemontcg.io/sv8/logo.png",qty:10},
-  {id:150,name:"Destined Rivals Sleeved Booster Pack",set:"Destined Rivals",price:11.19,img:"https://images.pokemontcg.io/sv9/logo.png",qty:10},
-  {id:151,name:"Surging Sparks Sleeved Booster Pack",set:"Surging Sparks",price:9.64,img:"https://images.pokemontcg.io/sv8/logo.png",qty:10},
-  {id:152,name:"Twilight Masquerade Sleeved Booster Pack",set:"Twilight Masquerade",price:9.50,img:"https://images.pokemontcg.io/sv6/logo.png",qty:10},
-  {id:153,name:"Stellar Crown Sleeved Booster Pack",set:"Stellar Crown",price:9.10,img:"https://images.pokemontcg.io/sv7/logo.png",qty:10},
-  {id:154,name:"Mega Evolution Sleeved Booster Pack",set:"Mega Evolution",price:9.07,img:"https://images.pokemontcg.io/sv7/logo.png",qty:10},
-  {id:155,name:"Temporal Forces Sleeved Booster Pack",set:"Temporal Forces",price:8.98,img:"https://images.pokemontcg.io/sv5/logo.png",qty:10},
-  {id:156,name:"Journey Together Sleeved Booster Pack",set:"Journey Together",price:7.82,img:"https://images.pokemontcg.io/sv9/logo.png",qty:10},
-  {id:157,name:"Perfect Order Sleeved Booster Pack",set:"Perfect Order",price:7.56,img:"https://images.pokemontcg.io/sv9/logo.png",qty:10},
+  {id:101,name:"151 Ultra-Premium Collection",set:"SV: 151",price:939.68,img:"https://product-images.tcgplayer.com/fit-in/400x558/502005.jpg",qty:1},
+  {id:102,name:"151 Elite Trainer Box",set:"SV: 151",price:712.05,img:"https://product-images.tcgplayer.com/fit-in/400x558/503313.jpg",qty:2},
+  {id:103,name:"Evolving Skies ETB [Flareon/Jolteon/Umbreon/Leafeon]",set:"Evolving Skies",price:571.96,img:"https://product-images.tcgplayer.com/fit-in/400x558/242441.jpg",qty:1},
+  {id:104,name:"Evolving Skies ETB [Glaceon/Vaporeon/Sylveon/Espeon]",set:"Evolving Skies",price:550.80,img:"https://product-images.tcgplayer.com/fit-in/400x558/242443.jpg",qty:1},
+  {id:105,name:"Hidden Fates Elite Trainer Box",set:"Hidden Fates",price:522.54,img:"https://product-images.tcgplayer.com/fit-in/400x558/194729.jpg",qty:2},
+  {id:106,name:"Prismatic Evolutions Super Premium Collection",set:"Prismatic Evolutions",price:359.53,img:"https://product-images.tcgplayer.com/fit-in/400x558/622770.jpg",qty:1},
+  {id:107,name:"Crown Zenith Elite Trainer Box",set:"Crown Zenith",price:348.16,img:"https://product-images.tcgplayer.com/fit-in/400x558/453470.jpg",qty:2},
+  {id:108,name:"Prismatic Evolutions Premium Figure Collection",set:"Prismatic Evolutions",price:250.61,img:"https://product-images.tcgplayer.com/fit-in/400x558/650799.jpg",qty:1},
+  {id:109,name:"Mega Charizard X ex Ultra Premium Collection",set:"Miscellaneous",price:244.50,img:"https://product-images.tcgplayer.com/fit-in/400x558/574438.jpg",qty:2},
+  {id:110,name:"151 Booster Bundle",set:"SV: 151",price:224.63,img:"https://product-images.tcgplayer.com/fit-in/400x558/503315.jpg",qty:5},
+  {id:111,name:"Destined Rivals Elite Trainer Box",set:"Destined Rivals",price:209.85,img:"https://product-images.tcgplayer.com/fit-in/400x558/624676.jpg",qty:3},
+  {id:112,name:"Crown Zenith Booster Bundle",set:"Crown Zenith",price:196.59,img:"https://product-images.tcgplayer.com/fit-in/400x558/527562.jpg",qty:1},
+  {id:113,name:"Ascended Heroes Elite Trainer Box",set:"Ascended Heroes",price:187.80,img:"https://product-images.tcgplayer.com/fit-in/400x558/668496.jpg",qty:4},
+  {id:114,name:"Prismatic Evolutions Elite Trainer Box",set:"Prismatic Evolutions",price:170.30,img:"https://product-images.tcgplayer.com/fit-in/400x558/593355.jpg",qty:4},
+  {id:115,name:"Phantasmal Flames Elite Trainer Box",set:"Phantasmal Flames",price:136.46,img:"https://product-images.tcgplayer.com/fit-in/400x558/654136.jpg",qty:3},
+  {id:116,name:"Journey Together Elite Trainer Box",set:"Journey Together",price:123.14,img:"https://product-images.tcgplayer.com/fit-in/400x558/610930.jpg",qty:3},
+  {id:117,name:"Black Bolt Elite Trainer Box",set:"Black Bolt",price:118.23,img:"https://product-images.tcgplayer.com/fit-in/400x558/630686.jpg",qty:4},
+  {id:118,name:"Twilight Masquerade Elite Trainer Box",set:"Twilight Masquerade",price:114.43,img:"https://product-images.tcgplayer.com/fit-in/400x558/543845.jpg",qty:3},
+  {id:119,name:"Surging Sparks Elite Trainer Box",set:"Surging Sparks",price:111.37,img:"https://product-images.tcgplayer.com/fit-in/400x558/565630.jpg",qty:1},
+  {id:120,name:"Mega Evolution ETB [Mega Gardevoir]",set:"Mega Evolution",price:109.01,img:"https://product-images.tcgplayer.com/fit-in/400x558/629800.jpg",qty:1},
+  {id:121,name:"Mega Evolution ETB [Mega Lucario]",set:"Mega Evolution",price:105.42,img:"https://product-images.tcgplayer.com/fit-in/400x558/629801.jpg",qty:2},
+  {id:122,name:"Prismatic Evolutions Booster Bundle",set:"Prismatic Evolutions",price:103.24,img:"https://product-images.tcgplayer.com/fit-in/400x558/593358.jpg",qty:2},
+  {id:123,name:"White Flare Elite Trainer Box",set:"White Flare",price:101.21,img:"https://product-images.tcgplayer.com/fit-in/400x558/630694.jpg",qty:2},
+  {id:124,name:"Evolving Skies Sleeved Booster Pack",set:"Evolving Skies",price:80.65,img:"https://product-images.tcgplayer.com/fit-in/400x558/242438.jpg",qty:10},
+  {id:125,name:"Destined Rivals Booster Bundle",set:"Destined Rivals",price:75.99,img:"https://product-images.tcgplayer.com/fit-in/400x558/624679.jpg",qty:1},
+  {id:126,name:"Perfect Order Elite Trainer Box",set:"Perfect Order",price:75.24,img:"https://product-images.tcgplayer.com/fit-in/400x558/651200.jpg",qty:2},
+  {id:127,name:"Phantasmal Flames Booster Bundle",set:"Phantasmal Flames",price:71.73,img:"https://product-images.tcgplayer.com/fit-in/400x558/654139.jpg",qty:1},
+  {id:128,name:"Mega Venusaur ex Premium Collection",set:"Miscellaneous",price:68.03,img:"https://product-images.tcgplayer.com/fit-in/400x558/574440.jpg",qty:2},
+  {id:129,name:"White Flare Booster Bundle",set:"White Flare",price:65.55,img:"https://product-images.tcgplayer.com/fit-in/400x558/630697.jpg",qty:1},
+  {id:130,name:"Eevee Evolutions Tin [Jolteon V]",set:"Evolving Skies",price:65.00,img:"https://product-images.tcgplayer.com/fit-in/400x558/243726.jpg",qty:1},
+  {id:131,name:"Unova Victini Illustration Collection",set:"Black Bolt",price:64.86,img:"https://product-images.tcgplayer.com/fit-in/400x558/630700.jpg",qty:2},
+  {id:132,name:"Mega Evolution Booster Bundle",set:"Mega Evolution",price:63.98,img:"https://product-images.tcgplayer.com/fit-in/400x558/629803.jpg",qty:2},
+  {id:133,name:"Charizard ex Special Collection",set:"Miscellaneous",price:62.67,img:"https://product-images.tcgplayer.com/fit-in/400x558/504950.jpg",qty:1},
+  {id:134,name:"Surging Sparks Booster Bundle",set:"Surging Sparks",price:56.89,img:"https://product-images.tcgplayer.com/fit-in/400x558/565633.jpg",qty:2},
+  {id:135,name:"Ascended Heroes Mega Emboar ex Box",set:"Ascended Heroes",price:53.85,img:"https://product-images.tcgplayer.com/fit-in/400x558/668501.jpg",qty:1},
+  {id:136,name:"Ascended Heroes Mega Meganium ex Box",set:"Ascended Heroes",price:53.63,img:"https://product-images.tcgplayer.com/fit-in/400x558/668502.jpg",qty:1},
+  {id:137,name:"Ascended Heroes Mega Feraligatr ex Box",set:"Ascended Heroes",price:53.09,img:"https://product-images.tcgplayer.com/fit-in/400x558/668503.jpg",qty:1},
+  {id:138,name:"Journey Together Booster Bundle",set:"Journey Together",price:49.28,img:"https://product-images.tcgplayer.com/fit-in/400x558/610933.jpg",qty:1},
+  {id:139,name:"Mega Charizard Tin (Mega Charizard X)",set:"Miscellaneous",price:43.76,img:"https://product-images.tcgplayer.com/fit-in/400x558/574442.jpg",qty:2},
+  {id:140,name:"Perfect Order Booster Bundle",set:"Perfect Order",price:43.51,img:"https://product-images.tcgplayer.com/fit-in/400x558/651203.jpg",qty:2},
+  {id:141,name:"Mega Charizard Tin (Mega Charizard Y)",set:"Miscellaneous",price:40.27,img:"https://product-images.tcgplayer.com/fit-in/400x558/574443.jpg",qty:1},
+  {id:142,name:"Mega Latias ex Box",set:"Miscellaneous",price:39.60,img:"https://product-images.tcgplayer.com/fit-in/400x558/651500.jpg",qty:1},
+  {id:143,name:"Fusion Strike Sleeved Booster Pack",set:"Fusion Strike",price:26.72,img:"https://product-images.tcgplayer.com/fit-in/400x558/236832.jpg",qty:10},
+  {id:144,name:"Lost Origin Sleeved Booster Pack",set:"Lost Origin",price:19.95,img:"https://product-images.tcgplayer.com/fit-in/400x558/258700.jpg",qty:10},
+  {id:145,name:"Brilliant Stars Sleeved Booster Pack",set:"Brilliant Stars",price:16.96,img:"https://product-images.tcgplayer.com/fit-in/400x558/229878.jpg",qty:10},
+  {id:146,name:"Silver Tempest Sleeved Booster Pack",set:"Silver Tempest",price:15.63,img:"https://product-images.tcgplayer.com/fit-in/400x558/268210.jpg",qty:10},
+  {id:147,name:"Paldea Evolved Sleeved Booster Pack",set:"Paldea Evolved",price:15.29,img:"https://product-images.tcgplayer.com/fit-in/400x558/500100.jpg",qty:10},
+  {id:148,name:"Obsidian Flames Sleeved Booster Pack",set:"Obsidian Flames",price:12.66,img:"https://product-images.tcgplayer.com/fit-in/400x558/507050.jpg",qty:10},
+  {id:149,name:"Phantasmal Flames Sleeved Booster Pack",set:"Phantasmal Flames",price:12.56,img:"https://product-images.tcgplayer.com/fit-in/400x558/654141.jpg",qty:10},
+  {id:150,name:"Destined Rivals Sleeved Booster Pack",set:"Destined Rivals",price:11.64,img:"https://product-images.tcgplayer.com/fit-in/400x558/624681.jpg",qty:10},
+  {id:151,name:"Surging Sparks Sleeved Booster Pack",set:"Surging Sparks",price:10.03,img:"https://product-images.tcgplayer.com/fit-in/400x558/565636.jpg",qty:10},
+  {id:152,name:"Twilight Masquerade Sleeved Booster Pack",set:"Twilight Masquerade",price:9.88,img:"https://product-images.tcgplayer.com/fit-in/400x558/543848.jpg",qty:10},
+  {id:153,name:"Stellar Crown Sleeved Booster Pack",set:"Stellar Crown",price:9.46,img:"https://product-images.tcgplayer.com/fit-in/400x558/557670.jpg",qty:10},
+  {id:154,name:"Mega Evolution Sleeved Booster Pack",set:"Mega Evolution",price:9.43,img:"https://product-images.tcgplayer.com/fit-in/400x558/629806.jpg",qty:10},
+  {id:155,name:"Temporal Forces Sleeved Booster Pack",set:"Temporal Forces",price:9.34,img:"https://product-images.tcgplayer.com/fit-in/400x558/534050.jpg",qty:10},
+  {id:156,name:"Journey Together Sleeved Booster Pack",set:"Journey Together",price:8.13,img:"https://product-images.tcgplayer.com/fit-in/400x558/610935.jpg",qty:10},
+  {id:157,name:"Perfect Order Sleeved Booster Pack",set:"Perfect Order",price:7.86,img:"https://product-images.tcgplayer.com/fit-in/400x558/651205.jpg",qty:10},
 ];
 
 let wishlist=[], cardFilter='all', activeConv=0;
@@ -492,8 +502,7 @@ function renderCards(){
   const graded=cards.filter(c=>c.grader).length;
   document.getElementById('cstats').innerHTML=
     `<div class="stat"><strong>${cards.length}</strong> Cards</div>
-     <div class="stat"><strong>${graded}</strong> Graded</div>
-     <div class="stat">Collection Value <strong>$${totalVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>`;
+     <div class="stat"><strong>${graded}</strong> Graded</div>`;
   const grid=document.getElementById('cgrid');
   if(!vis.length){grid.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><div class="empty-t">No cards found</div></div>';return;}
   grid.innerHTML=vis.map(c=>{
@@ -531,8 +540,7 @@ function renderSealed(){
   const totalQty=sealed.reduce((s,p)=>s+p.qty,0);
   document.getElementById('sstats').innerHTML=
     `<div class="stat"><strong>${sealed.length}</strong> Products</div>
-     <div class="stat"><strong>${totalQty}</strong> Total Units</div>
-     <div class="stat">Sealed Value <strong>$${totalVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>`;
+     <div class="stat"><strong>${totalQty}</strong> Total Units</div>`;
   const grid=document.getElementById('sgrid');
   if(!vis.length){grid.innerHTML='<div class="empty"><div class="empty-ico">📦</div><div class="empty-t">No products found</div></div>';return;}
   grid.innerHTML=vis.map(s=>
@@ -567,6 +575,7 @@ function openDet(id,kind){
     if(item.type==='sell'||item.type==='both') acts+=`<button class="btn-buy" onclick="initBuy(${id},'${item.name}',${item.price})">Buy Now — $${item.price.toLocaleString('en-US',{minimumFractionDigits:2})}</button>`;
     if(item.type==='trade'||item.type==='both') acts+=`<button class="btn-tr" onclick="initTrade(${id},'${item.name}')">📨 Offer Trade</button>`;
     acts+=`<button class="btn-hrt${wished?' on':''}" id="hb${id}-card" onclick="toggleWish(${id},'card')" title="Wishlist">♥</button>`;
+    const fixBtn=`<button onclick="openFixImg(${item.id},'card','${item.name.replace(/'/g,"\\'")}');closeDet()" style="width:100%;margin-top:10px;padding:9px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--fb);font-size:12px;cursor:pointer;transition:all .2s" onmouseover="this.style.color='var(--yellow)';this.style.borderColor='rgba(255,215,0,.4)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">🖼 Wrong image? Fix it</button>`;
     body=`<div class="mhead">
       <div class="mart">
         <img data-apiid="${item.apiId}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;object-position:top" onerror="this.style.display='none'">
@@ -585,8 +594,8 @@ function openDet(id,kind){
       <div class="drow"><span class="dlbl">Listing</span><span>${slbl}</span></div>
       <div class="drow"><span class="dlbl">Quantity Available</span><span>${item.qty}</span></div>
     </div>
-    <div class="macts">${acts}</div>`;
-  } else {
+    <div class="macts">${acts}</div>
+    ${fixBtn}`;
     const acts=`<button class="btn-buy" onclick="initBuy(${id},'${item.name}',${item.price})">Buy Now — $${item.price.toLocaleString('en-US',{minimumFractionDigits:2})}</button>
       <button class="btn-tr" onclick="initTrade(${id},'${item.name}')">📨 Make Offer</button>
       <button class="btn-hrt${wished?' on':''}" id="hb${id}-sealed" onclick="toggleWish(${id},'sealed')" title="Wishlist">♥</button>`;
@@ -690,14 +699,88 @@ function submitCard(){
   const type=document.getElementById('ft').value;
   const grader=document.getElementById('fgr').value;
   const grade=parseInt(document.getElementById('fgs').value)||null;
-  const img=document.getElementById('fimg').value.trim()||tcg('000000');
+  const apiId=document.getElementById('fimg').value.trim()||'';
   if(!name){alert('Please enter a card name.');return;}
-  cards.unshift({id:Date.now(),name,set:set||'Unknown Set',num:num||'—',cond,price,type,grader,grade,img,qty:1});
+  cards.unshift({id:Date.now(),name,set:set||'Unknown Set',num:num||'—',cond,price,type,grader,grade,apiId,qty:1});
   closeAdd();['fn','fs','fnum','fp','fgs','fimg'].forEach(id=>document.getElementById(id).value='');
   renderCards();
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDet();closeAdd();}});
+// ── IMAGE FIX TOOL ──
+let fixTargetId = null;
+let fixTargetKind = 'card';
+
+function openFixImg(id, kind, name) {
+  fixTargetId = id; fixTargetKind = kind;
+  document.getElementById('fix-card-name').textContent = `Fixing image for: ${name}`;
+  document.getElementById('fix-search').value = name;
+  document.getElementById('fix-manual-id').value = '';
+  document.getElementById('fix-results').innerHTML = '';
+  document.getElementById('fix-overlay').classList.add('open');
+  searchFixImg();
+}
+function closeFixImg(){ document.getElementById('fix-overlay').classList.remove('open'); }
+
+async function searchFixImg() {
+  const q = document.getElementById('fix-search').value.trim();
+  if(!q) return;
+  const res = document.getElementById('fix-results');
+  res.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:20px 0;text-align:center">Searching…</div>';
+  try {
+    const r = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(q)}"&pageSize=20&orderBy=-set.releaseDate`);
+    const d = await r.json();
+    if(!d.data||!d.data.length){ res.innerHTML='<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:20px 0;text-align:center">No results — try a different name</div>'; return; }
+    res.innerHTML = d.data.map(c => {
+      const img = c.images?.large || c.images?.small || '';
+      return `<div onclick="applyFixImg('${c.id}','${img}')" style="cursor:pointer;border-radius:8px;border:1px solid var(--border);overflow:hidden;background:var(--card-bg);transition:border-color .15s" onmouseover="this.style.borderColor='rgba(255,215,0,.6)'" onmouseout="this.style.borderColor='var(--border)'">
+        <img src="${img}" style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block" alt="${c.name}">
+        <div style="padding:5px 6px;font-size:10px;color:var(--muted);line-height:1.3">${c.name}<br><span style="color:var(--yellow);font-size:9px">${c.set?.name||''} · ${c.number||''}</span></div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    res.innerHTML = '<div style="color:#f87171;font-size:13px;grid-column:1/-1;padding:20px 0;text-align:center">Search failed — check your connection</div>';
+  }
+}
+
+function applyManualId() {
+  const id = document.getElementById('fix-manual-id').value.trim();
+  if(!id) return;
+  fetchCardImg(id, null, true).then(url => { if(url) applyFixImg(id, url); });
+}
+
+async function fetchCardImg(apiId, imgEl, returnUrl=false) {
+  if(IMG_CACHE[apiId]) {
+    if(imgEl) imgEl.src = IMG_CACHE[apiId];
+    if(returnUrl) return IMG_CACHE[apiId];
+    return;
+  }
+  try {
+    const r = await fetch(`https://api.pokemontcg.io/v2/cards/${apiId}`);
+    const d = await r.json();
+    const url = d.data?.images?.large || d.data?.images?.small;
+    if(url){ IMG_CACHE[apiId]=url; if(imgEl) imgEl.src=url; if(returnUrl) return url; }
+  } catch(e){ if(returnUrl) return null; }
+}
+
+function applyFixImg(apiId, imgUrl) {
+  // Update the card/sealed data
+  const pool = fixTargetKind==='card' ? cards : sealed;
+  const item = pool.find(x=>x.id===fixTargetId);
+  if(item){ item.apiId=apiId; IMG_CACHE[apiId]=imgUrl; }
+  closeFixImg();
+  // Refresh the right page
+  if(fixTargetKind==='card') renderCards(); else renderSealed();
+  // Re-open detail if it was open
+}
+
+function lazyLoad() {
+  document.querySelectorAll('img[data-apiid]:not([data-loaded])').forEach(img => {
+    img.dataset.loaded = '1';
+    fetchCardImg(img.dataset.apiid, img);
+  });
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDet();closeAdd();closeFixImg();}});
 document.getElementById('doverlay').addEventListener('click',e=>{if(e.target===document.getElementById('doverlay'))closeDet();});
 document.getElementById('aoverlay').addEventListener('click',e=>{if(e.target===document.getElementById('aoverlay'))closeAdd();});
 
