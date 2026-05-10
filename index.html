@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ PokéHub — Card Trading</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --yellow: #FFD700;
+    --yellow-dim: rgba(255,215,0,0.12);
+    --red: #E3350D;
+    --blue: #1A6FB5;
+    --dark: #0f0f1a;
+    --surface: #16162a;
+    --card-bg: #1e1e35;
+    --border: rgba(255,215,0,0.14);
+    --border-med: rgba(255,215,0,0.28);
+    --text: #f0f0f0;
+    --muted: #8888aa;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--dark);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.2); border-radius: 3px; }
+
+  /* ─── NAV ─── */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 16px;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #FFD700 30%, #FF6B00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 7px 18px;
+    border-radius: 20px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-tab.active { background: var(--yellow); color: #111; font-weight: 600; }
+  .nav-tab:hover:not(.active) { background: var(--yellow-dim); color: var(--yellow); }
+  .nav-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    position: relative;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    transition: border-color 0.2s;
+  }
+  .icon-btn:hover { border-color: var(--border-med); }
+  .badge {
+    position: absolute; top: -2px; right: -2px;
+    width: 16px; height: 16px;
+    background: var(--red);
+    border-radius: 50%;
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #fff;
+  }
+
+  /* ─── LAYOUT ─── */
+  .main { padding: 24px 28px; max-width: 1200px; margin: 0 auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ─── SEARCH ─── */
+  .search-bar {
+    display: flex; gap: 8px; margin-bottom: 22px; align-items: center; flex-wrap: wrap;
+  }
+  .search-bar input {
+    flex: 1; min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-bar input:focus { border-color: var(--yellow); }
+  .search-bar input::placeholder { color: var(--muted); }
+  .filter-pill {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-pill.active { border-color: var(--yellow); color: var(--yellow); background: var(--yellow-dim); }
+  .filter-pill:hover:not(.active) { border-color: var(--border-med); color: var(--text); }
+
+  /* ─── CARD GRID ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 16px;
+  }
+  .poke-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .poke-card:hover { transform: translateY(-5px); border-color: rgba(255,215,0,0.5); box-shadow: 0 8px 30px rgba(255,215,0,0.08); }
+  .poke-card.holo { border-color: rgba(120,180,255,0.35); }
+  .poke-card.holo:hover { border-color: rgba(120,180,255,0.75); box-shadow: 0 8px 30px rgba(100,160,255,0.1); }
+
+  .card-image {
+    width: 100%; aspect-ratio: 3/4;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 54px;
+    background: linear-gradient(160deg, #1a2a4a 0%, #0f1a30 100%);
+    position: relative; overflow: hidden;
+  }
+  .card-image.fire    { background: linear-gradient(160deg, #3a1a0a, #1a0700); }
+  .card-image.water   { background: linear-gradient(160deg, #0a1a3a, #040e20); }
+  .card-image.electric{ background: linear-gradient(160deg, #2a2a08, #141400); }
+  .card-image.grass   { background: linear-gradient(160deg, #0a2a14, #041008); }
+  .card-image.psychic { background: linear-gradient(160deg, #2a0a3a, #150020); }
+  .card-image.fighting{ background: linear-gradient(160deg, #3a1a0a, #1a0a00); }
+  .card-image.ghost   { background: linear-gradient(160deg, #1a0a2a, #0a0014); }
+  .card-image.dragon  { background: linear-gradient(160deg, #0a1a3a, #050d20); }
+  .card-image.default { background: linear-gradient(160deg, #1e1e35, #111122); }
+
+  .holo-overlay {
+    position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 8px,
+      rgba(100,180,255,0.04) 8px,
+      rgba(100,180,255,0.04) 16px
+    );
+  }
+  .holo-shine {
+    position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(135deg, transparent 35%, rgba(150,200,255,0.1) 50%, transparent 65%);
+  }
+
+  .card-status {
+    position: absolute; top: 8px; right: 8px;
+    padding: 3px 8px; border-radius: 10px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .status-sell  { background: rgba(227,53,13,0.88);  color: #fff; }
+  .status-trade { background: rgba(26,111,181,0.88); color: #fff; }
+  .status-both  { background: rgba(255,215,0,0.9);   color: #111; }
+
+  .card-info { padding: 10px 12px 13px; }
+  .card-name { font-family: var(--font-display); font-size: 18px; letter-spacing: 0.5px; color: var(--text); margin-bottom: 2px; }
+  .card-set  { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .card-meta { display: flex; justify-content: space-between; align-items: center; }
+  .card-price { font-weight: 600; font-size: 15px; color: var(--yellow); }
+  .cond { font-size: 11px; padding: 2px 8px; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--muted); }
+  .cond.NM { color: #4ade80; background: rgba(74,222,128,0.1); }
+  .cond.LP { color: #86efac; background: rgba(134,239,172,0.1); }
+  .cond.MP { color: #fbbf24; background: rgba(251,191,36,0.1); }
+  .cond.HP { color: #f87171; background: rgba(248,113,113,0.1); }
+
+  /* ─── EMPTY STATE ─── */
+  .empty {
+    text-align: center; padding: 70px 20px; color: var(--muted);
+    grid-column: 1 / -1;
+  }
+  .empty-icon { font-size: 52px; margin-bottom: 14px; }
+  .empty-title { font-family: var(--font-display); font-size: 24px; color: var(--text); letter-spacing: 1px; margin-bottom: 6px; }
+
+  /* ─── MODAL ─── */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 200;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border-med);
+    border-radius: 18px;
+    width: 500px; max-width: 100%;
+    max-height: 88vh; overflow-y: auto;
+    padding: 26px; position: relative;
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
+  .modal-x {
+    position: absolute; top: 16px; right: 18px;
+    background: none; border: none; color: var(--muted);
+    font-size: 22px; cursor: pointer; line-height: 1;
+    transition: color 0.15s;
+  }
+  .modal-x:hover { color: var(--text); }
+
+  .modal-head { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 22px; }
+  .modal-art {
+    width: 96px; height: 96px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 46px;
+    position: relative; overflow: hidden;
+  }
+  .modal-title    { font-family: var(--font-display); font-size: 30px; letter-spacing: 1px; margin-bottom: 4px; }
+  .modal-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .modal-price    { font-size: 24px; font-weight: 700; color: var(--yellow); }
+
+  .detail-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label { color: var(--muted); }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-buy {
+    flex: 1; padding: 13px; border-radius: var(--radius);
+    border: none; background: var(--yellow); color: #111;
+    font-family: var(--font-body); font-weight: 700; font-size: 14px;
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-buy:hover { opacity: 0.85; }
+  .btn-trade {
+    flex: 1; padding: 13px; border-radius: var(--radius);
+    border: 1px solid rgba(26,111,181,0.6); background: transparent;
+    color: #6ab4ff; font-family: var(--font-body); font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-trade:hover { background: rgba(26,111,181,0.15); }
+  .btn-heart {
+    width: 46px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-size: 20px; cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+  }
+  .btn-heart.on { color: #f87171; border-color: rgba(248,113,113,0.4); }
+  .btn-heart:hover { color: #f87171; }
+
+  /* ─── WISHLIST ─── */
+  .page-title { font-family: var(--font-display); font-size: 34px; letter-spacing: 2px; color: var(--yellow); margin-bottom: 4px; }
+  .page-sub   { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+
+  .wish-card {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 16px;
+    transition: border-color 0.2s;
+  }
+  .wish-card:hover { border-color: var(--border-med); }
+  .wish-emoji { font-size: 36px; flex-shrink: 0; }
+  .wish-info  { flex: 1; }
+  .wish-name  { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.5px; }
+  .wish-meta  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .wish-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .btn-msg {
+    padding: 8px 14px; border-radius: var(--radius);
+    border: 1px solid rgba(26,111,181,0.5); background: transparent;
+    color: #6ab4ff; font-family: var(--font-body); font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: background 0.2s; white-space: nowrap;
+  }
+  .btn-msg:hover { background: rgba(26,111,181,0.15); }
+  .btn-rm {
+    padding: 8px 12px; border-radius: var(--radius);
+    border: 1px solid rgba(248,113,113,0.3); background: transparent;
+    color: #f87171; font-family: var(--font-body); font-size: 12px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-rm:hover { background: rgba(248,113,113,0.1); }
+
+  /* ─── MESSAGES ─── */
+  .msg-layout {
+    display: grid; grid-template-columns: 260px 1fr; gap: 14px; height: 540px;
+  }
+  .conv-list {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow-y: auto;
+  }
+  .conv-header {
+    padding: 14px 16px; font-family: var(--font-display); font-size: 18px; letter-spacing: 1px;
+    color: var(--yellow); border-bottom: 1px solid var(--border);
+  }
+  .conv-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border);
+    transition: background 0.15s; border-left: 2px solid transparent;
+  }
+  .conv-item:hover { background: var(--yellow-dim); }
+  .conv-item.active { background: var(--yellow-dim); border-left-color: var(--yellow); }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 13px; flex-shrink: 0;
+  }
+  .av-b { background: rgba(26,111,181,0.3); color: #6ab4ff; }
+  .av-r { background: rgba(227,53,13,0.3);  color: #ff8070; }
+  .av-g { background: rgba(74,222,128,0.2); color: #4ade80; }
+  .av-p { background: rgba(167,139,250,0.2);color: #a78bfa; }
+  .av-o { background: rgba(251,191,36,0.2); color: #fbbf24; }
+  .conv-text { flex: 1; min-width: 0; }
+  .conv-name    { font-size: 13px; font-weight: 500; }
+  .conv-preview { font-size: 11px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .unread { width: 8px; height: 8px; border-radius: 50%; background: var(--yellow); flex-shrink: 0; }
+
+  .chat-pane {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .chat-top {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .chat-top-name   { font-weight: 600; font-size: 14px; }
+  .chat-top-status { font-size: 11px; }
+  .chat-msgs { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .bubble-wrap { display: flex; flex-direction: column; }
+  .bubble-wrap.me { align-items: flex-end; }
+  .bubble-wrap.them { align-items: flex-start; }
+  .bubble {
+    max-width: 76%; padding: 10px 14px; border-radius: 16px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .bubble.them { background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .bubble.me   { background: var(--yellow); color: #111; font-weight: 500; border-bottom-right-radius: 4px; }
+  .btime { font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .chat-foot { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+  .chat-input {
+    flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 10px 16px; color: var(--text); font-family: var(--font-body); font-size: 13px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .chat-input:focus { border-color: var(--yellow); }
+  .chat-input::placeholder { color: var(--muted); }
+  .send-btn {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--yellow);
+    border: none; color: #111; font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.2s; flex-shrink: 0;
+  }
+  .send-btn:hover { opacity: 0.85; }
+
+  /* ─── ADD CARD FORM ─── */
+  .add-fab {
+    position: fixed; bottom: 30px; right: 30px;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: var(--yellow); color: #111; border: none;
+    font-size: 26px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 22px rgba(255,215,0,0.35);
+    transition: transform 0.2s, box-shadow 0.2s; z-index: 90;
+  }
+  .add-fab:hover { transform: scale(1.1); box-shadow: 0 6px 32px rgba(255,215,0,0.55); }
+
+  .form-lbl  { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; display: block; }
+  .form-ctrl {
+    width: 100%; background: var(--dark); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 14px;
+    color: var(--text); font-family: var(--font-body); font-size: 14px; outline: none;
+    transition: border-color 0.2s; appearance: none; margin-bottom: 14px;
+  }
+  .form-ctrl:focus { border-color: var(--yellow); }
+  .form-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-title { font-family: var(--font-display); font-size: 30px; letter-spacing: 1px; color: var(--yellow); margin-bottom: 22px; }
+
+  /* ─── STATS BAR ─── */
+  .stats-bar {
+    display: flex; gap: 14px; margin-bottom: 22px; flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 16px; font-size: 13px; color: var(--muted);
+  }
+  .stat-pill strong { color: var(--yellow); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo">⚡ PokéHub</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="nav('catalog')">Catalog</button>
+    <button class="nav-tab" onclick="nav('wishlist')">Wishlist</button>
+    <button class="nav-tab" onclick="nav('messages')">Messages</button>
+  </div>
+  <div class="nav-actions">
+    <button class="icon-btn" onclick="nav('messages')" title="Messages">
+      💬<span class="badge" id="msg-badge">2</span>
+    </button>
+    <button class="icon-btn" onclick="nav('wishlist')" title="Wishlist">❤️</button>
+  </div>
+</nav>
+
+<!-- CATALOG -->
+<div class="page active main" id="page-catalog">
+  <div class="search-bar">
+    <input type="text" id="q" placeholder="🔍  Search cards, sets, types…" oninput="renderCards()">
+    <button class="filter-pill active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-pill" onclick="setFilter('sell',this)">For Sale</button>
+    <button class="filter-pill" onclick="setFilter('trade',this)">For Trade</button>
+  </div>
+  <div class="stats-bar" id="stats-bar"></div>
+  <div class="card-grid" id="card-grid"></div>
+</div>
+
+<!-- WISHLIST -->
+<div class="page main" id="page-wishlist">
+  <div class="page-title">Wishlist</div>
+  <div class="page-sub">Cards you're hunting — message the seller directly from here</div>
+  <div id="wish-list"></div>
+</div>
+
+<!-- MESSAGES -->
+<div class="page main" id="page-messages">
+  <div class="page-title" style="margin-bottom:16px">Messages</div>
+  <div class="msg-layout">
+    <div class="conv-list">
+      <div class="conv-header">Conversations</div>
+      <div id="conv-items"></div>
+    </div>
+    <div class="chat-pane">
+      <div class="chat-top" id="chat-top"></div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-foot">
+        <input class="chat-input" id="chat-in" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="send-btn" onclick="sendMsg()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CARD DETAIL OVERLAY -->
+<div class="overlay" id="detail-overlay" onclick="if(event.target===this)closeDetail()">
+  <div class="modal">
+    <button class="modal-x" onclick="closeDetail()">✕</button>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<!-- ADD CARD OVERLAY -->
+<div class="overlay" id="add-overlay" onclick="if(event.target===this)closeAdd()">
+  <div class="modal">
+    <button class="modal-x" onclick="closeAdd()">✕</button>
+    <div class="form-title">Add Card to Catalog</div>
+    <div class="form-row">
+      <div><label class="form-lbl">Card Name</label><input class="form-ctrl" id="f-name" placeholder="e.g. Charizard"></div>
+      <div><label class="form-lbl">Set / Series</label><input class="form-ctrl" id="f-set" placeholder="e.g. Base Set"></div>
+    </div>
+    <div class="form-row">
+      <div><label class="form-lbl">Card Number</label><input class="form-ctrl" id="f-num" placeholder="e.g. 4/102"></div>
+      <div><label class="form-lbl">Price ($)</label><input class="form-ctrl" id="f-price" type="number" placeholder="e.g. 45.00"></div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label class="form-lbl">Condition</label>
+        <select class="form-ctrl" id="f-cond">
+          <option value="NM">Near Mint (NM)</option>
+          <option value="LP">Lightly Played (LP)</option>
+          <option value="MP">Moderately Played (MP)</option>
+          <option value="HP">Heavily Played (HP)</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-lbl">Listing Type</label>
+        <select class="form-ctrl" id="f-type">
+          <option value="sell">For Sale</option>
+          <option value="trade">For Trade</option>
+          <option value="both">Sale &amp; Trade</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label class="form-lbl">Pokémon Type</label>
+        <select class="form-ctrl" id="f-elem">
+          <option value="fire">🔥 Fire</option>
+          <option value="water">💧 Water</option>
+          <option value="electric">⚡ Electric</option>
+          <option value="grass">🌿 Grass</option>
+          <option value="psychic">🔮 Psychic</option>
+          <option value="fighting">🥊 Fighting</option>
+          <option value="ghost">👻 Ghost</option>
+          <option value="dragon">🐉 Dragon</option>
+          <option value="default">⚪ Colorless</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-lbl">Holo / Special?</label>
+        <select class="form-ctrl" id="f-holo">
+          <option value="false">No</option>
+          <option value="true">Yes — Holo ✨</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-buy" style="width:100%;margin-top:6px" onclick="submitCard()">Add to Catalog</button>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="add-fab" id="add-fab" onclick="openAdd()" title="Add a card">＋</button>
+
+<script>
+/* ─────────────── DATA ─────────────── */
+const EMOJI = {fire:'🔥',water:'💧',electric:'⚡',grass:'🌿',psychic:'🔮',fighting:'🥊',ghost:'👻',dragon:'🐉',default:'🃏'};
+
+let cards = [
+  {id:1,name:'Charizard',set:'Base Set',num:'4/102',cond:'NM',price:350,type:'sell',elem:'fire',holo:true},
+  {id:2,name:'Blastoise',set:'Base Set',num:'2/102',cond:'LP',price:120,type:'both',elem:'water',holo:true},
+  {id:3,name:'Pikachu',set:'Jungle',num:'60/64',cond:'NM',price:25,type:'sell',elem:'electric',holo:false},
+  {id:4,name:'Mewtwo',set:'Base Set',num:'10/102',cond:'LP',price:180,type:'trade',elem:'psychic',holo:true},
+  {id:5,name:'Venusaur',set:'Base Set',num:'15/102',cond:'MP',price:85,type:'both',elem:'grass',holo:true},
+  {id:6,name:'Gengar',set:'Fossil',num:'5/62',cond:'NM',price:95,type:'trade',elem:'ghost',holo:true},
+  {id:7,name:'Machamp',set:'Base Set',num:'8/102',cond:'LP',price:20,type:'sell',elem:'fighting',holo:true},
+  {id:8,name:'Eevee',set:'Jungle',num:'51/64',cond:'NM',price:30,type:'both',elem:'default',holo:false},
+  {id:9,name:'Dragonite',set:'Fossil',num:'4/62',cond:'LP',price:140,type:'trade',elem:'dragon',holo:true},
+  {id:10,name:'Alakazam',set:'Base Set',num:'1/102',cond:'NM',price:65,type:'sell',elem:'psychic',holo:true},
+];
+
+let wishlist = [];
+let filter   = 'all';
+let activeConv = 0;
+
+const convs = [
+  {name:'AshJunior99',init:'AJ',av:'av-b',status:'Online',color:'#4ade80',
+   msgs:[{from:'them',text:'Hey! Is the Charizard Base Set still available?',time:'2:14 PM'},
+         {from:'me',text:'Yes! Just listed it today. NM condition.',time:'2:15 PM'},
+         {from:'them',text:'Is the Charizard still available?',time:'2:31 PM'}]},
+  {name:'MistyKanto',init:'MK',av:'av-r',status:'Online',color:'#4ade80',
+   msgs:[{from:'them',text:'Love the Blastoise listing! Would you do a trade?',time:'11:02 AM'},
+         {from:'me',text:'What are you offering?',time:'11:10 AM'},
+         {from:'them',text:"I'll trade my Blastoise + $10",time:'11:13 AM'}]},
+  {name:'BrocksPokeshop',init:'BP',av:'av-g',status:'Away',color:'#fbbf24',
+   msgs:[{from:'me',text:'Venusaur is $85 shipped. Interested?',time:'Yesterday'},
+         {from:'them',text:'Deal! When can you ship?',time:'Yesterday'}]},
+  {name:'GaryTrained',init:'GT',av:'av-p',status:'Offline',color:'var(--muted)',
+   msgs:[{from:'them',text:'Looking for a Mewtwo, got one?',time:'Monday'}]},
+  {name:'TrainerRed',init:'TR',av:'av-o',status:'Online',color:'#4ade80',
+   msgs:[{from:'them',text:'Got any Fossil holos?',time:'Sunday'}]},
+];
+let unread = new Set([0,1]);
+
+/* ─────────────── NAV ─────────────── */
+function nav(pg) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+pg).classList.add('active');
+  const idx = {catalog:0,wishlist:1,messages:2}[pg];
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  document.getElementById('add-fab').style.display = pg==='catalog'?'flex':'none';
+  if(pg==='wishlist') renderWish();
+  if(pg==='messages') { renderConvs(); renderChat(activeConv); }
+}
+
+/* ─────────────── CATALOG ─────────────── */
+function setFilter(f, el) {
+  filter = f;
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderCards();
+}
+
+function renderCards() {
+  const q = document.getElementById('q').value.toLowerCase();
+  const vis = cards.filter(c => {
+    const mf = filter==='all' || c.type===filter || (filter!=='all' && c.type==='both');
+    const ms = !q || c.name.toLowerCase().includes(q) || c.set.toLowerCase().includes(q) || c.elem.toLowerCase().includes(q);
+    return mf && ms;
+  });
+
+  // stats
+  const forSale = cards.filter(c=>c.type==='sell'||c.type==='both').length;
+  const forTrade = cards.filter(c=>c.type==='trade'||c.type==='both').length;
+  const totalVal = cards.filter(c=>c.type==='sell'||c.type==='both').reduce((s,c)=>s+c.price,0);
+  document.getElementById('stats-bar').innerHTML =
+    `<div class="stat-pill"><strong>${cards.length}</strong> Cards</div>
+     <div class="stat-pill"><strong>${forSale}</strong> For Sale</div>
+     <div class="stat-pill"><strong>${forTrade}</strong> For Trade</div>
+     <div class="stat-pill">Catalog Value <strong>$${totalVal.toLocaleString()}</strong></div>`;
+
+  const grid = document.getElementById('card-grid');
+  if(!vis.length) {
+    grid.innerHTML='<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">No cards found</div><div>Try a different search or filter</div></div>';
+    return;
+  }
+  grid.innerHTML = vis.map(c => {
+    const slbl = c.type==='sell'?'For Sale':c.type==='trade'?'For Trade':'Sale & Trade';
+    const scls = c.type==='sell'?'status-sell':c.type==='trade'?'status-trade':'status-both';
+    const em = EMOJI[c.elem]||'🃏';
+    return `<div class="poke-card${c.holo?' holo':''}" onclick="openDetail(${c.id})">
+      <div class="card-image ${c.elem}">
+        ${em}
+        ${c.holo?'<div class="holo-overlay"></div><div class="holo-shine"></div>':''}
+        <span class="card-status ${scls}">${slbl}</span>
+      </div>
+      <div class="card-info">
+        <div class="card-name">${c.name}</div>
+        <div class="card-set">${c.set} · ${c.num||'—'}</div>
+        <div class="card-meta">
+          <span class="card-price">$${c.price}</span>
+          <span class="cond ${c.cond}">${c.cond}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ─────────────── DETAIL ─────────────── */
+function openDetail(id) {
+  const c = cards.find(x=>x.id===id);
+  if(!c) return;
+  const em = EMOJI[c.elem]||'🃏';
+  const wished = wishlist.some(w=>w.id===id);
+  const slbl = c.type==='sell'?'For Sale':c.type==='trade'?'For Trade':'Sale & Trade';
+
+  let actions = '';
+  if(c.type==='sell' || c.type==='both')
+    actions += `<button class="btn-buy" onclick="initBuy(${id})">Buy Now — $${c.price}</button>`;
+  if(c.type==='trade' || c.type==='both')
+    actions += `<button class="btn-trade" onclick="initTrade(${id})">📨 Offer Trade</button>`;
+  actions += `<button class="btn-heart${wished?' on':''}" id="hb${id}" onclick="toggleWish(${id})" title="Wishlist">♥</button>`;
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="modal-head">
+      <div class="modal-art card-image ${c.elem}">
+        ${em}
+        ${c.holo?'<div class="holo-overlay"></div><div class="holo-shine"></div>':''}
+      </div>
+      <div>
+        <div class="modal-title">${c.name}</div>
+        <div class="modal-subtitle">${c.set} · ${c.num||'—'}${c.holo?' · ✨ Holo':''}</div>
+        <div class="modal-price">$${c.price}</div>
+      </div>
+    </div>
+    <div>
+      <div class="detail-row"><span class="detail-label">Condition</span><span class="cond ${c.cond}">${c.cond}</span></div>
+      <div class="detail-row"><span class="detail-label">Listing</span><span>${slbl}</span></div>
+      <div class="detail-row"><span class="detail-label">Type</span><span>${em} ${c.elem.charAt(0).toUpperCase()+c.elem.slice(1)}</span></div>
+      <div class="detail-row"><span class="detail-label">Holo</span><span>${c.holo?'✨ Yes':'No'}</span></div>
+    </div>
+    <div class="modal-actions">${actions}</div>`;
+  document.getElementById('detail-overlay').classList.add('open');
+}
+function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
+
+function initBuy(id) {
+  const c = cards.find(x=>x.id===id); closeDetail();
+  nav('messages');
+  setTimeout(()=>{ document.getElementById('chat-in').value=`Hi! I'd like to buy your ${c.name} (${c.set}) for $${c.price}. Is it still available?`; document.getElementById('chat-in').focus(); },150);
+}
+function initTrade(id) {
+  const c = cards.find(x=>x.id===id); closeDetail();
+  nav('messages');
+  setTimeout(()=>{ document.getElementById('chat-in').value=`Hi! I'm interested in trading for your ${c.name} (${c.set}). What are you looking for?`; document.getElementById('chat-in').focus(); },150);
+}
+
+/* ─────────────── WISHLIST ─────────────── */
+function toggleWish(id) {
+  const c = cards.find(x=>x.id===id);
+  const idx = wishlist.findIndex(w=>w.id===id);
+  if(idx>=0) wishlist.splice(idx,1); else wishlist.push(c);
+  const btn = document.getElementById('hb'+id);
+  if(btn) btn.classList.toggle('on', wishlist.some(w=>w.id===id));
+}
+function removeWish(id) { wishlist = wishlist.filter(w=>w.id!==id); renderWish(); }
+function renderWish() {
+  const el = document.getElementById('wish-list');
+  if(!wishlist.length) {
+    el.innerHTML='<div class="empty"><div class="empty-icon">❤️</div><div class="empty-title">Wishlist is empty</div><div>Heart a card from the catalog to track it here</div></div>';
+    return;
+  }
+  el.innerHTML = wishlist.map(c=>`
+    <div class="wish-card">
+      <div class="wish-emoji">${EMOJI[c.elem]||'🃏'}</div>
+      <div class="wish-info">
+        <div class="wish-name">${c.name}</div>
+        <div class="wish-meta">${c.set} · ${c.num||'—'} · <span class="cond ${c.cond}">${c.cond}</span> · $${c.price}</div>
+      </div>
+      <div class="wish-actions">
+        <button class="btn-msg" onclick="contactAbout(${c.id})">Message Seller</button>
+        <button class="btn-rm" onclick="removeWish(${c.id})">Remove</button>
+      </div>
+    </div>`).join('');
+}
+function contactAbout(id) {
+  const c = cards.find(x=>x.id===id);
+  nav('messages');
+  setTimeout(()=>{ document.getElementById('chat-in').value=`Hey, I'm interested in your ${c.name} listing!`; document.getElementById('chat-in').focus(); },150);
+}
+
+/* ─────────────── MESSAGES ─────────────── */
+function renderConvs() {
+  document.getElementById('conv-items').innerHTML = convs.map((c,i)=>`
+    <div class="conv-item${i===activeConv?' active':''}" onclick="switchConv(${i})">
+      <div class="avatar ${c.av}">${c.init}</div>
+      <div class="conv-text">
+        <div class="conv-name">${c.name}</div>
+        <div class="conv-preview">${c.msgs[c.msgs.length-1].text}</div>
+      </div>
+      ${unread.has(i)?'<div class="unread"></div>':''}
+    </div>`).join('');
+}
+function switchConv(i) {
+  activeConv = i; unread.delete(i);
+  updateBadge(); renderConvs(); renderChat(i);
+}
+function updateBadge() {
+  const b = document.getElementById('msg-badge');
+  b.textContent = unread.size;
+  b.style.display = unread.size ? 'flex' : 'none';
+}
+function renderChat(i) {
+  const c = convs[i];
+  document.getElementById('chat-top').innerHTML=`
+    <div class="avatar ${c.av}">${c.init}</div>
+    <div>
+      <div class="chat-top-name">${c.name}</div>
+      <div class="chat-top-status" style="color:${c.color}">● ${c.status}</div>
+    </div>`;
+  const msgs = document.getElementById('chat-msgs');
+  msgs.innerHTML = c.msgs.map(m=>`
+    <div class="bubble-wrap ${m.from}">
+      <div class="bubble ${m.from}">${m.text}</div>
+      <div class="btime">${m.time}</div>
+    </div>`).join('');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function sendMsg() {
+  const inp = document.getElementById('chat-in');
+  const txt = inp.value.trim(); if(!txt) return;
+  convs[activeConv].msgs.push({from:'me',text:txt,time:'Just now'});
+  inp.value = '';
+  renderConvs(); renderChat(activeConv);
+}
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') { closeDetail(); closeAdd(); }
+});
+
+/* ─────────────── ADD CARD ─────────────── */
+function openAdd() { document.getElementById('add-overlay').classList.add('open'); }
+function closeAdd() { document.getElementById('add-overlay').classList.remove('open'); }
+function submitCard() {
+  const name  = document.getElementById('f-name').value.trim();
+  const set   = document.getElementById('f-set').value.trim();
+  const num   = document.getElementById('f-num').value.trim();
+  const price = parseFloat(document.getElementById('f-price').value)||0;
+  const cond  = document.getElementById('f-cond').value;
+  const type  = document.getElementById('f-type').value;
+  const elem  = document.getElementById('f-elem').value;
+  const holo  = document.getElementById('f-holo').value==='true';
+  if(!name){ alert('Please enter a card name.'); return; }
+  cards.unshift({id:Date.now(),name,set:set||'Unknown Set',num:num||'—',cond,price,type,elem,holo});
+  closeAdd();
+  ['f-name','f-set','f-num','f-price'].forEach(id=>document.getElementById(id).value='');
+  renderCards();
+}
+
+/* ─────────────── INIT ─────────────── */
+renderCards();
+renderConvs();
+updateBadge();
+</script>
+</body>
+</html>
