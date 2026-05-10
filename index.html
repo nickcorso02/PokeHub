@@ -241,19 +241,41 @@ html,body{background:var(--dark);color:var(--text);font-family:var(--fb);font-si
 
 <!-- IMAGE FIX OVERLAY -->
 <div class="overlay" id="fix-overlay" onclick="if(event.target===this)closeFixImg()">
-  <div class="modal" style="width:640px">
+  <div class="modal" style="width:600px">
     <button class="mx" onclick="closeFixImg()">✕</button>
-    <div class="ftitle" style="font-size:22px;margin-bottom:4px">Fix Card Image</div>
-    <div id="fix-card-name" style="color:var(--muted);font-size:13px;margin-bottom:18px"></div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px" id="fix-label">Search by Set Name + Card Number</div>
-    <div style="display:grid;grid-template-columns:1fr 140px auto;gap:8px;margin-bottom:6px;align-items:center">
-      <input class="fctrl" id="fix-set" placeholder="Set name (e.g. Celebrations Classic Collection)" style="margin-bottom:0" onkeydown="if(event.key==='Enter')searchFixImg()">
-      <input class="fctrl" id="fix-num" placeholder="Number (e.g. 4)" style="margin-bottom:0" onkeydown="if(event.key==='Enter')searchFixImg()">
-      <button class="btn-buy" style="white-space:nowrap;padding:0 18px;height:38px" onclick="searchFixImg()">Search</button>
+    <div class="ftitle" style="font-size:22px;margin-bottom:4px">Fix Image</div>
+    <div id="fix-card-name" style="color:var(--yellow);font-size:13px;font-weight:500;margin-bottom:20px"></div>
+
+    <div style="background:var(--dark);border-radius:var(--r);padding:14px 16px;margin-bottom:20px;border:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px">How to get the image URL:</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        <span style="color:var(--yellow);font-weight:600">1.</span> Go to <a href="https://scrydex.com" target="_blank" style="color:var(--yellow)">scrydex.com</a> and find your card or product<br>
+        <span style="color:var(--yellow);font-weight:600">2.</span> Right-click the card image → <strong style="color:var(--text)">Copy Image Address</strong><br>
+        <span style="color:var(--yellow);font-weight:600">3.</span> Paste it below and click Apply
+      </div>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:20px" id="fix-hint">Tip: use the card number exactly as shown (e.g. <span style="color:var(--yellow)">199</span> or <span style="color:var(--yellow)">GG44</span>). Set name can be partial.</div>
-    <div id="fix-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;max-height:360px;overflow-y:auto"></div>
-    <div id="fix-status" style="font-size:12px;color:var(--muted);text-align:center;padding:8px 0;display:none"></div>
+
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Image URL</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input class="fctrl" id="fix-url-input" placeholder="Paste image URL here…" style="margin-bottom:0;flex:1" onkeydown="if(event.key==='Enter')previewFixUrl()">
+      <button class="btn-buy" style="white-space:nowrap;padding:0 20px;height:38px" onclick="previewFixUrl()">Preview</button>
+    </div>
+
+    <div id="fix-preview-area" style="display:none;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Preview</div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <img id="fix-preview-img" src="" style="width:120px;border-radius:10px;border:1px solid var(--border);display:block" onerror="showFixError()">
+        <div>
+          <div id="fix-preview-name" style="font-family:var(--fd);font-size:18px;letter-spacing:.5px;margin-bottom:6px"></div>
+          <div id="fix-preview-msg" style="font-size:12px;color:var(--muted);margin-bottom:14px">Looking good? Click Apply to save.</div>
+          <button class="btn-buy" id="fix-apply-btn" onclick="applyFixUrl()" style="padding:10px 24px">✓ Apply Image</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="fix-error-msg" style="display:none;color:#f87171;font-size:13px;padding:10px 0">
+      That URL didn't load an image — make sure you right-clicked the image itself and chose "Copy Image Address"
+    </div>
   </div>
 </div>
 
@@ -513,7 +535,7 @@ function renderCards(){
     const ccls=c.grader?(c.grade===10?'GEM':'MINT9'):c.cond;
     return`<div class="pcard ${cls}" onclick="openDet(${c.id},'card')">
       <div class="cimg">
-        <img data-apiid="${c.apiId}" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;object-position:top" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <img ${c.img ? `src="${c.img}"` : `data-apiid="${c.apiId}"`} alt="${c.name}" style="width:100%;height:100%;object-fit:cover;object-position:top" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="fallback" style="display:none">🃏</div>
         ${c.grader?`<div class="grade-badge">${c.grader}<span class="grade-score">${c.grade}</span></div>`:''}
         <span class="sticker ${scls}">${slbl}</span>
@@ -578,7 +600,7 @@ function openDet(id,kind){
     const fixBtn=`<button onclick="openFixImg(${item.id},'card','${item.name.replace(/'/g,"\\'")}');closeDet()" style="width:100%;margin-top:10px;padding:9px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--fb);font-size:12px;cursor:pointer">🖼 Wrong image? Fix it</button>`;
     body=`<div class="mhead">
       <div class="mart">
-        <img data-apiid="${item.apiId}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;object-position:top" onerror="this.style.display='none'">
+        <img ${item.img ? `src="${item.img}"` : `data-apiid="${item.apiId}"`} alt="${item.name}" style="width:100%;height:100%;object-fit:cover;object-position:top" onerror="this.style.display='none'">
         ${item.grader?`<div class="grade-badge" style="position:absolute;top:5px;left:5px">${item.grader}<span class="grade-score">${item.grade}</span></div>`:''}
       </div>
       <div>
@@ -714,150 +736,46 @@ let fixTargetId = null;
 let fixTargetKind = 'card';
 
 function openFixImg(id, kind, name) {
-  fixTargetId = id; fixTargetKind = kind;
-  const pool = kind==='card' ? cards : sealed;
-  const item = pool.find(x=>x.id===id);
-  document.getElementById('fix-card-name').textContent = `Fixing: ${name}`;
-  const numField = document.getElementById('fix-num');
-  const label = document.getElementById('fix-label');
-  const hint = document.getElementById('fix-hint');
-  if(kind==='card'){
-    document.getElementById('fix-set').value = item ? item.set : '';
-    numField.value = item ? (item.num||'').replace(/\/.+/,'') : '';
-    numField.style.display = '';
-    label.textContent = 'Search by Set Name + Card Number';
-    hint.innerHTML = 'Tip: use the card number exactly as shown (e.g. <span style="color:var(--yellow)">199</span> or <span style="color:var(--yellow)">GG44</span>). Set name can be partial.';
-  } else {
-    document.getElementById('fix-set').value = item ? item.name : '';
-    numField.value = '';
-    numField.style.display = 'none';
-    label.textContent = 'Search by Product Name';
-    hint.innerHTML = 'Type the product name and hit Search. Results from TCGPlayer will appear below — click the correct box art.';
-  }
-  document.getElementById('fix-results').innerHTML = '';
-  document.getElementById('fix-status').style.display = 'none';
+  fixTargetId = id;
+  fixTargetKind = kind;
+  document.getElementById('fix-card-name').textContent = name;
+  document.getElementById('fix-preview-name').textContent = name;
+  document.getElementById('fix-url-input').value = '';
+  document.getElementById('fix-preview-area').style.display = 'none';
+  document.getElementById('fix-error-msg').style.display = 'none';
   document.getElementById('fix-overlay').classList.add('open');
-  searchFixImg();
+  setTimeout(()=>document.getElementById('fix-url-input').focus(), 100);
 }
 
-function closeFixImg(){ document.getElementById('fix-overlay').classList.remove('open'); }
-
-async function searchFixImg() {
-  const setQ = document.getElementById('fix-set').value.trim();
-  const numQ = document.getElementById('fix-num').value.trim();
-  if(!setQ && !numQ) return;
-  const res = document.getElementById('fix-results');
-  const status = document.getElementById('fix-status');
-  res.innerHTML = '';
-  status.style.display = 'block';
-  status.style.color = 'var(--muted)';
-
-  // Sealed: no card API — show URL paste interface instead
-  if(fixTargetKind==='sealed'){
-    status.style.display = 'none';
-    const tcgId = setQ.match(/\d{5,7}/)?.[0] || '';
-    res.innerHTML = `
-      <div style="grid-column:1/-1;padding:4px 0">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Paste a direct image URL (right-click any product image → Copy Image Address):</div>
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <input class="fctrl" id="fix-url-input" placeholder="https://product-images.tcgplayer.com/..." style="margin-bottom:0;flex:1" value="">
-          <button class="btn-buy" style="white-space:nowrap;padding:0 16px;height:38px" onclick="applyDirectUrl()">Apply</button>
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Or try a TCGPlayer product ID directly:</div>
-        <div style="display:flex;gap:8px;margin-bottom:6px">
-          <input class="fctrl" id="fix-tcg-id" placeholder="TCGPlayer product ID (e.g. 503313)" style="margin-bottom:0;flex:1" value="${tcgId}">
-          <button class="btn-buy" style="white-space:nowrap;padding:0 16px;height:38px" onclick="applyTcgId()">Preview</button>
-        </div>
-        <div id="fix-preview" style="margin-top:14px;display:flex;gap:14px;align-items:flex-start"></div>
-      </div>`;
-    return;
-  }
-
-  // Cards: search pokemontcg.io API by set name + number
-  status.textContent = 'Searching…';
-  try {
-    let query = '';
-    if(numQ) query += `number:${numQ}`;
-    if(setQ && numQ) query += ' ';
-    if(setQ) query += `set.name:"${setQ}"`;
-    const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(query)}&pageSize=24&orderBy=-set.releaseDate`;
-    const r = await fetch(url);
-    const d = await r.json();
-    if(!d.data || !d.data.length) {
-      if(numQ) {
-        const r2 = await fetch(`https://api.pokemontcg.io/v2/cards?q=number:${numQ}&pageSize=24&orderBy=-set.releaseDate`);
-        const d2 = await r2.json();
-        if(d2.data && d2.data.length) { renderFixResults(d2.data); status.style.display='none'; return; }
-      }
-      status.textContent = 'No results — try adjusting the set name or number';
-      return;
-    }
-    renderFixResults(d.data);
-    status.style.display = 'none';
-  } catch(e) {
-    status.style.color = '#f87171';
-    status.textContent = 'Search failed — check your connection';
-  }
+function closeFixImg() {
+  document.getElementById('fix-overlay').classList.remove('open');
 }
 
-function applyDirectUrl() {
+function previewFixUrl() {
   const url = document.getElementById('fix-url-input').value.trim();
   if(!url) return;
-  applyFixImg('', url);
+  document.getElementById('fix-error-msg').style.display = 'none';
+  document.getElementById('fix-preview-msg').textContent = 'Loading…';
+  const img = document.getElementById('fix-preview-img');
+  img.onload = () => {
+    document.getElementById('fix-preview-area').style.display = 'block';
+    document.getElementById('fix-preview-msg').textContent = 'Looking good? Click Apply to save.';
+  };
+  img.onerror = () => showFixError();
+  img.src = url;
 }
 
-function applyTcgId() {
-  const tcgId = document.getElementById('fix-tcg-id').value.trim();
-  if(!tcgId) return;
-  const url = `https://product-images.tcgplayer.com/fit-in/400x558/${tcgId}.jpg`;
-  const preview = document.getElementById('fix-preview');
-  preview.innerHTML = `
-    <img src="${url}" style="width:130px;border-radius:8px;border:1px solid var(--border)" onerror="this.src='';this.style.display='none';document.getElementById('fix-preview-err').style.display='block'">
-    <div>
-      <div style="font-size:12px;color:var(--text);margin-bottom:8px">Preview — does this look right?</div>
-      <div id="fix-preview-err" style="display:none;color:#f87171;font-size:12px;margin-bottom:8px">Image not found — try a different ID</div>
-      <button class="btn-buy" style="padding:8px 18px" onclick="applyFixImg('','${url}')">✓ Use this image</button>
-    </div>`;
+function showFixError() {
+  document.getElementById('fix-preview-area').style.display = 'none';
+  document.getElementById('fix-error-msg').style.display = 'block';
 }
 
-function renderFixResults(cards) {
-  const res = document.getElementById('fix-results');
-  res.innerHTML = cards.map(c => {
-    const img = c.images?.large || c.images?.small || '';
-    const safeImg = img.replace(/'/g, "\\'");
-    const safeId = c.id.replace(/'/g, "\\'");
-    return `<div onclick="applyFixImg('${safeId}','${safeImg}')" style="cursor:pointer;border-radius:10px;border:1px solid var(--border);overflow:hidden;background:var(--card-bg);transition:border-color .15s;user-select:none" onmouseover="this.style.borderColor='rgba(255,215,0,.7)'" onmouseout="this.style.borderColor='var(--border)'">
-      <img src="${img}" style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block" alt="${c.name}">
-      <div style="padding:6px 7px">
-        <div style="font-size:11px;font-weight:500;color:var(--text);line-height:1.2;margin-bottom:2px">${c.name}</div>
-        <div style="font-size:10px;color:var(--yellow)">${c.set?.name||''}</div>
-        <div style="font-size:10px;color:var(--muted)">#${c.number||''}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function fetchCardImg(apiId, imgEl, returnUrl=false) {
-  if(IMG_CACHE[apiId]) {
-    if(imgEl) imgEl.src = IMG_CACHE[apiId];
-    if(returnUrl) return IMG_CACHE[apiId];
-    return;
-  }
-  try {
-    const r = await fetch(`https://api.pokemontcg.io/v2/cards/${apiId}`);
-    const d = await r.json();
-    const url = d.data?.images?.large || d.data?.images?.small;
-    if(url){ IMG_CACHE[apiId]=url; if(imgEl) imgEl.src=url; if(returnUrl) return url; }
-  } catch(e){ if(returnUrl) return null; }
-}
-
-function applyFixImg(apiId, imgUrl) {
+function applyFixUrl() {
+  const url = document.getElementById('fix-url-input').value.trim();
+  if(!url) return;
   const pool = fixTargetKind==='card' ? cards : sealed;
   const item = pool.find(x=>x.id===fixTargetId);
-  if(item){
-    if(fixTargetKind==='card'){ item.apiId=apiId; IMG_CACHE[apiId]=imgUrl; }
-    else { item.img=imgUrl; }
-  }
+  if(item){ item.img = url; if(fixTargetKind==='card') item.apiId = url; IMG_CACHE[url]=url; }
   closeFixImg();
   if(fixTargetKind==='card') renderCards(); else renderSealed();
 }
