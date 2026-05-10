@@ -324,6 +324,7 @@ async function fetchCardImg(apiId, fallbackEl) {
     const url = d.data?.images?.large || d.data?.images?.small;
     if(url){ IMG_CACHE[apiId]=url; fallbackEl.src=url; }
   } catch(e){}
+}
 
 // ── GRADED CARDS ──
 // apiId = official pokemontcg.io card ID (set-number format)
@@ -575,7 +576,7 @@ function openDet(id,kind){
     if(item.type==='sell'||item.type==='both') acts+=`<button class="btn-buy" onclick="initBuy(${id},'${item.name}',${item.price})">Buy Now — $${item.price.toLocaleString('en-US',{minimumFractionDigits:2})}</button>`;
     if(item.type==='trade'||item.type==='both') acts+=`<button class="btn-tr" onclick="initTrade(${id},'${item.name}')">📨 Offer Trade</button>`;
     acts+=`<button class="btn-hrt${wished?' on':''}" id="hb${id}-card" onclick="toggleWish(${id},'card')" title="Wishlist">♥</button>`;
-    const fixBtn=`<button onclick="openFixImg(${item.id},'card','${item.name.replace(/'/g,"\\'")}');closeDet()" style="width:100%;margin-top:10px;padding:9px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--fb);font-size:12px;cursor:pointer;transition:all .2s" onmouseover="this.style.color='var(--yellow)';this.style.borderColor='rgba(255,215,0,.4)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">🖼 Wrong image? Fix it</button>`;
+    const fixBtn=`<button onclick="openFixImg(${item.id},'card','${item.name.replace(/'/g,"\\'")}');closeDet()" style="width:100%;margin-top:10px;padding:9px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--fb);font-size:12px;cursor:pointer">🖼 Wrong image? Fix it</button>`;
     body=`<div class="mhead">
       <div class="mart">
         <img data-apiid="${item.apiId}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;object-position:top" onerror="this.style.display='none'">
@@ -596,11 +597,12 @@ function openDet(id,kind){
     </div>
     <div class="macts">${acts}</div>
     ${fixBtn}`;
-    const acts=`<button class="btn-buy" onclick="initBuy(${id},'${item.name}',${item.price})">Buy Now — $${item.price.toLocaleString('en-US',{minimumFractionDigits:2})}</button>
+  } else {
+    const sealedActs=`<button class="btn-buy" onclick="initBuy(${id},'${item.name}',${item.price})">Buy Now — $${item.price.toLocaleString('en-US',{minimumFractionDigits:2})}</button>
       <button class="btn-tr" onclick="initTrade(${id},'${item.name}')">📨 Make Offer</button>
       <button class="btn-hrt${wished?' on':''}" id="hb${id}-sealed" onclick="toggleWish(${id},'sealed')" title="Wishlist">♥</button>`;
     body=`<div class="mhead">
-      <div class="mart"><img src="${item.img}" alt="${item.name}" onerror="this.style.display='none'"></div>
+      <div class="mart"><img src="${item.img}" alt="${item.name}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:contain;padding:6px"></div>
       <div>
         <div class="mtitle">${item.name}</div>
         <div class="msub">${item.set}</div>
@@ -612,13 +614,13 @@ function openDet(id,kind){
       <div class="drow"><span class="dlbl">Set</span><span>${item.set}</span></div>
       <div class="drow"><span class="dlbl">Quantity Available</span><span>${item.qty}</span></div>
     </div>
-    <div class="macts">${acts}</div>`;
+    <div class="macts">${sealedActs}</div>`;
   }
   document.getElementById('dbody').innerHTML=body;
   document.getElementById('doverlay').classList.add('open');
   setTimeout(lazyLoad,50);
 }
-function closeDet(){document.getElementById('doverlay').classList.remove('open')}
+function closeDet(){document.getElementById('doverlay').classList.remove('open');}
 
 function initBuy(id,name,price){
   closeDet();goPage('messages');
