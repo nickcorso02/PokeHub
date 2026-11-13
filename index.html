@@ -651,6 +651,58 @@ body::before{
 .price-apply-btn{padding:7px 14px;border-radius:8px;border:none;background:var(--gold);color:#111;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s;white-space:nowrap}
 .price-apply-btn:hover{opacity:.85}
 .price-changed{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.03)}
+/* ── SWIPE / MATCH ── */
+.sw-wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:28px;align-items:start}
+.sw-stage{display:flex;flex-direction:column;align-items:center}
+.sw-filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;justify-content:center}
+.sw-deck{position:relative;width:min(340px,86vw);height:min(520px,128vw,62vh);min-height:380px;margin:0 auto;touch-action:pan-y}
+.sw-card{position:absolute;inset:0;border-radius:16px;background:linear-gradient(180deg,#14141f 0%,#0a0a12 100%);
+  border:1px solid var(--gold-border2);box-shadow:0 18px 50px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,215,0,.05);
+  overflow:hidden;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;cursor:grab;
+  transition:transform .3s ease,opacity .3s ease;will-change:transform}
+.sw-card.dragging{transition:none;cursor:grabbing}
+.sw-card:not(.top){pointer-events:none}
+.sw-img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:18px 18px 8px;background:radial-gradient(ellipse at 50% 30%,rgba(201,168,76,.12),transparent 70%)}
+.sw-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;pointer-events:none;filter:drop-shadow(0 10px 22px rgba(0,0,0,.7))}
+.sw-info{padding:14px 18px 18px;border-top:1px solid var(--gold-border);background:rgba(5,5,8,.6)}
+.sw-name{font-family:var(--fd);font-size:18px;letter-spacing:.5px;line-height:1.2;color:var(--text)}
+.sw-set{font-size:12px;color:var(--muted2);margin-top:4px}
+.sw-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px}
+.sw-price{font-family:var(--fd);font-size:22px;color:var(--gold);letter-spacing:.5px}
+.sw-tag{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--gold-border2);color:var(--gold)}
+.sw-stamp{position:absolute;top:26px;padding:6px 14px;border-radius:6px;font-family:var(--fd);font-size:26px;font-weight:700;letter-spacing:3px;opacity:0;border:3px solid;pointer-events:none;z-index:2}
+.sw-stamp.want{left:22px;color:#FFD700;border-color:#FFD700;transform:rotate(-14deg);background:rgba(0,0,0,.45)}
+.sw-stamp.pass{right:22px;color:#e06c6c;border-color:#e06c6c;transform:rotate(14deg);background:rgba(0,0,0,.45)}
+.sw-btns{display:flex;gap:18px;align-items:center;justify-content:center;margin-top:22px}
+.sw-btn{width:62px;height:62px;border-radius:50%;border:1px solid var(--gold-border2);background:var(--surface);color:var(--text);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s,border-color .15s,background .15s}
+.sw-btn:hover{transform:scale(1.07)}
+.sw-btn:focus-visible{outline:2px solid var(--gold-bright);outline-offset:3px}
+.sw-btn.pass{color:#e06c6c}.sw-btn.pass:hover{border-color:#e06c6c}
+.sw-btn.want{width:72px;height:72px;font-size:28px;color:#050508;background:linear-gradient(135deg,#C9A84C,#FFD700);border-color:#FFD700}
+.sw-btn.undo{width:46px;height:46px;font-size:17px;color:var(--muted2)}
+.sw-btn:disabled{opacity:.35;cursor:default;transform:none}
+.sw-hint{font-size:12px;color:var(--muted);margin-top:14px;text-align:center}
+.sw-count{font-size:12px;color:var(--muted2);margin-bottom:10px;text-align:center}
+.sw-done{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px dashed var(--gold-border2);border-radius:16px;padding:24px;color:var(--muted2)}
+.sw-done h3{font-family:var(--fd);color:var(--gold);font-size:20px;letter-spacing:1px;margin-bottom:8px}
+.sw-matches{background:var(--surface);border:1px solid var(--gold-border);border-radius:var(--rl);overflow:hidden;position:sticky;top:90px}
+.sw-mhdr{padding:14px 16px;border-bottom:1px solid var(--gold-border);display:flex;justify-content:space-between;align-items:center}
+.sw-mhdr h3{font-family:var(--fd);font-size:15px;color:var(--gold);letter-spacing:1px}
+.sw-mlist{max-height:60vh;overflow-y:auto}
+.sw-m{display:flex;gap:11px;align-items:center;padding:11px 14px;border-bottom:1px solid rgba(201,168,76,.1)}
+.sw-m img{width:40px;height:56px;object-fit:contain;border-radius:4px;background:var(--slab-inner);flex-shrink:0;cursor:pointer}
+.sw-m-info{flex:1;min-width:0}
+.sw-m-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sw-m-price{font-size:12px;color:var(--gold);margin-top:2px}
+.sw-m-acts{display:flex;gap:6px;margin-top:6px}
+.sw-m-acts button{font-size:11px;padding:4px 9px;border-radius:5px;border:1px solid var(--gold-border2);background:transparent;color:var(--gold);cursor:pointer;font-family:var(--fb)}
+.sw-m-acts button.primary{background:var(--gold);color:#050508;border-color:var(--gold)}
+.sw-m-x{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px}
+.sw-m-empty{padding:28px 18px;text-align:center;font-size:13px;color:var(--muted);line-height:1.6}
+.sw-link{background:none;border:none;color:var(--muted2);font-size:12px;cursor:pointer;text-decoration:underline;font-family:var(--fb)}
+@media(max-width:860px){.sw-wrap{grid-template-columns:1fr}.sw-matches{position:static}}
+@media(max-width:600px){.sw-deck{height:50vh;min-height:330px}.sw-filters{margin-bottom:10px}.sw-btns{margin-top:14px}.sw-hint{display:none}}
+@media(prefers-reduced-motion:reduce){.sw-card{transition:none}}
 </style>
 </head>
 <body>
@@ -662,6 +714,7 @@ body::before{
     <button class="nav-tab" onclick="goPage('sealed')">Sealed</button>
     <button class="nav-tab" onclick="goPage('wishlist')">Wishlist</button>
     <button class="nav-tab" onclick="goPage('messages')">Messages</button>
+    <button class="nav-tab" onclick="goPage('swipe')">🔥 Match</button>
     <button class="nav-tab" onclick="goPage('prices')">💰 Update Prices</button>
   </div>
   <div class="nav-right">
@@ -677,6 +730,7 @@ body::before{
     <button class="mobile-nav-btn" onclick="goPage('sealed');setMobileNav(this)"><span>📦</span>Sealed</button>
     <button class="mobile-nav-btn" onclick="goPage('wishlist');setMobileNav(this)"><span>❤️</span>Wishlist</button>
     <button class="mobile-nav-btn" onclick="goPage('messages');setMobileNav(this)"><span>💬</span>Messages</button>
+    <button class="mobile-nav-btn" onclick="goPage('swipe');setMobileNav(this)"><span>🔥</span>Match</button>
     <button class="mobile-nav-btn" onclick="goPage('prices');setMobileNav(this)"><span>💰</span>Prices</button>
   </div>
 </nav>
@@ -725,6 +779,34 @@ body::before{
         <button class="sendbtn" onclick="sendMsg()">➤</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- SWIPE -->
+<div class="page main" id="page-swipe">
+  <div class="ptitle">Match</div>
+  <div class="psub">Swipe right on what you want, left to pass. Your picks land in Matches so you can buy or offer a trade.</div>
+  <div class="sw-wrap">
+    <div class="sw-stage">
+      <div class="sw-filters">
+        <button class="pill active" onclick="swSetFilter('all',this)">Everything</button>
+        <button class="pill" onclick="swSetFilter('card',this)">Graded cards</button>
+        <button class="pill" onclick="swSetFilter('sealed',this)">Sealed</button>
+      </div>
+      <div class="sw-count" id="sw-count"></div>
+      <div class="sw-deck" id="sw-deck"></div>
+      <div class="sw-btns">
+        <button class="sw-btn undo" id="sw-undo" onclick="swUndo()" title="Undo last swipe" aria-label="Undo last swipe">↺</button>
+        <button class="sw-btn pass" onclick="swDecide(false)" title="Pass (←)" aria-label="Pass">✕</button>
+        <button class="sw-btn want" onclick="swDecide(true)" title="Want it (→)" aria-label="Want it">♥</button>
+        <button class="sw-btn undo" onclick="swOpenTop()" title="View details" aria-label="View details">ⓘ</button>
+      </div>
+      <div class="sw-hint">Drag the card, tap the buttons, or use ← → on your keyboard</div>
+    </div>
+    <aside class="sw-matches">
+      <div class="sw-mhdr"><h3>Matches <span id="sw-mcount"></span></h3><button class="sw-link" onclick="swReset()">Start over</button></div>
+      <div class="sw-mlist" id="sw-mlist"></div>
+    </aside>
   </div>
 </div>
 
@@ -781,7 +863,7 @@ body::before{
     <div id="fix-preview-area" style="display:none;margin-bottom:16px">
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Preview</div>
       <div style="display:flex;gap:16px;align-items:flex-start">
-        <img id="fix-preview-img" src="" style="width:120px;border-radius:10px;border:1px solid var(--border);display:block" onerror="showFixError()">
+        <img id="fix-preview-img" src="" style="width:120px;border-radius:10px;border:1px solid var(--border);display:block">
         <div>
           <div id="fix-preview-name" style="font-family:var(--fd);font-size:18px;letter-spacing:.5px;margin-bottom:6px"></div>
           <div id="fix-preview-msg" style="font-size:12px;color:var(--muted);margin-bottom:14px">Looking good? Click Apply to save.</div>
@@ -1008,7 +1090,7 @@ function goPage(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+pg).classList.add('active');
-  const idx={catalog:0,sealed:1,wishlist:2,messages:3,prices:4}[pg];
+  const idx={catalog:0,sealed:1,wishlist:2,messages:3,swipe:4,prices:5}[pg];
   document.querySelectorAll('.nav-tab')[idx].classList.add('active');
   document.getElementById('fab').style.display = pg==='catalog'?'flex':'none';
   if(pg==='wishlist') renderWish();
@@ -1016,6 +1098,7 @@ function goPage(pg){
   if(pg==='sealed') renderSealed();
   if(pg==='catalog') renderCards();
   if(pg==='prices') renderPricePage();
+  if(pg==='swipe') renderSwipe();
 }
 
 // ── CATALOG ──
@@ -1426,6 +1509,124 @@ function setMobileNav(el){
   document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
 }
+
+// ── SWIPE / MATCH ──
+const SW_KEY='pokehub_swipe_v1';
+let swFilter='all', swDeck=[], swLiked=[], swSeen=[], swHistory=[];
+function swLoad(){try{const s=JSON.parse(localStorage.getItem(SW_KEY)||'{}');swLiked=s.liked||[];swSeen=s.seen||[];}catch(e){}}
+function swSave(){try{localStorage.setItem(SW_KEY,JSON.stringify({liked:swLiked,seen:swSeen}));}catch(e){}}
+function swKey(it){return it.kind+':'+it.id;}
+function swFind(key){const [k,id]=key.split(':');const pool=k==='card'?cards:sealed;const it=pool.find(x=>x.id===+id);return it?{...it,kind:k}:null;}
+function swShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function swBuildDeck(){
+  const pool=[...(swFilter!=='sealed'?cards.map(c=>({...c,kind:'card'})):[]),...(swFilter!=='card'?sealed.map(s=>({...s,kind:'sealed'})):[])];
+  swDeck=swShuffle(pool.filter(it=>!swSeen.includes(swKey(it))));
+}
+function swSetFilter(f,el){
+  swFilter=f;
+  document.querySelectorAll('.sw-filters .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  swHistory=[];swBuildDeck();swRender();
+}
+function swEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function swCardHTML(it,i){
+  const label=it.kind==='card'?(it.grader&&it.grade?`${it.grader} ${it.grade}`:(it.cond||'Raw')):'Sealed';
+  const sub=it.kind==='card'?`${it.set}${it.num?' #'+it.num:''}`:it.set;
+  const qty=it.qty>1?` (${it.qty} available)`:'';
+  return `<div class="sw-card${i===0?' top':''}" data-key="${swKey(it)}" style="z-index:${10-i};transform:translateY(${i*10}px) scale(${1-i*0.04});opacity:${i>2?0:1}">
+    <div class="sw-stamp want">WANT</div><div class="sw-stamp pass">PASS</div>
+    <div class="sw-img"><img src="${it.img}" alt="${swEsc(it.name)}" draggable="false" onerror="this.style.opacity=.15"></div>
+    <div class="sw-info">
+      <div class="sw-name">${swEsc(it.name)}</div>
+      <div class="sw-set">${swEsc(sub)}${qty}</div>
+      <div class="sw-row"><div class="sw-price">$${it.price.toLocaleString('en-US',{minimumFractionDigits:2})}</div><div class="sw-tag">${swEsc(label)}</div></div>
+    </div></div>`;
+}
+function swRender(){
+  const deck=document.getElementById('sw-deck');
+  const total=swDeck.length;
+  document.getElementById('sw-count').textContent=total?`${total} left in this stack`:'';
+  if(!total){
+    deck.innerHTML=`<div class="sw-done"><h3>You've seen everything</h3><p>${swLiked.length?'Check your Matches to buy or offer a trade.':'Nothing caught your eye this time.'}</p><button class="pill active" style="margin-top:16px" onclick="swReshow()">Show passed items again</button></div>`;
+  } else {
+    deck.innerHTML=swDeck.slice(0,4).map((it,i)=>swCardHTML(it,i)).reverse().join('');
+    swBindTop();
+  }
+  document.getElementById('sw-undo').disabled=!swHistory.length;
+  swRenderMatches();
+}
+function swRenderMatches(){
+  const list=document.getElementById('sw-mlist');
+  const items=swLiked.map(swFind).filter(Boolean);
+  document.getElementById('sw-mcount').textContent=items.length?`(${items.length})`:'';
+  if(!items.length){list.innerHTML='<div class="sw-m-empty">Swipe right on anything you want and it will show up here.</div>';return;}
+  list.innerHTML=items.slice().reverse().map(it=>{
+    const n=it.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return `<div class="sw-m">
+      <img src="${it.img}" alt="" onclick="openDet(${it.id},'${it.kind}')" onerror="this.style.opacity=.15">
+      <div class="sw-m-info">
+        <div class="sw-m-name" title="${swEsc(it.name)}">${swEsc(it.name)}</div>
+        <div class="sw-m-price">$${it.price.toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+        <div class="sw-m-acts"><button class="primary" onclick="initBuy(${it.id},'${n}',${it.price})">Buy</button><button onclick="initTrade(${it.id},'${n}')">Offer trade</button></div>
+      </div>
+      <button class="sw-m-x" onclick="swUnlike('${swKey(it)}')" title="Remove" aria-label="Remove from matches">×</button>
+    </div>`;}).join('');
+}
+function swUnlike(key){swLiked=swLiked.filter(k=>k!==key);swSave();swRenderMatches();}
+function swBindTop(){
+  const el=document.querySelector('#sw-deck .sw-card.top');if(!el)return;
+  let sx=0,sy=0,dx=0,dy=0,down=false;
+  const want=el.querySelector('.sw-stamp.want'),pass=el.querySelector('.sw-stamp.pass');
+  el.addEventListener('pointerdown',e=>{down=true;sx=e.clientX;sy=e.clientY;dx=dy=0;el.classList.add('dragging');el.setPointerCapture(e.pointerId);});
+  el.addEventListener('pointermove',e=>{
+    if(!down)return;dx=e.clientX-sx;dy=e.clientY-sy;
+    el.style.transform=`translate(${dx}px,${dy*0.4}px) rotate(${dx/18}deg)`;
+    want.style.opacity=Math.max(0,Math.min(1,dx/90));pass.style.opacity=Math.max(0,Math.min(1,-dx/90));
+  });
+  const end=()=>{
+    if(!down)return;down=false;el.classList.remove('dragging');
+    const th=Math.min(110,el.offsetWidth*0.3);
+    if(dx>th) swDecide(true);
+    else if(dx<-th) swDecide(false);
+    else if(Math.abs(dx)<5&&Math.abs(dy)<5){el.style.transform='';swOpenTop();}
+    else {el.style.transform='';want.style.opacity=0;pass.style.opacity=0;}
+  };
+  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+}
+function swDecide(like){
+  const it=swDeck[0];if(!it)return;
+  const el=document.querySelector('#sw-deck .sw-card.top');
+  const key=swKey(it);
+  swDeck.shift();swSeen.push(key);
+  if(like&&!swLiked.includes(key))swLiked.push(key);
+  swHistory.push({it,like});swSave();
+  if(el){
+    el.querySelector(like?'.sw-stamp.want':'.sw-stamp.pass').style.opacity=1;
+    el.classList.remove('top');
+    el.style.transform=`translate(${like?'140%':'-140%'},-20px) rotate(${like?22:-22}deg)`;
+    el.style.opacity=0;
+    setTimeout(swRender,260);
+  } else swRender();
+}
+function swUndo(){
+  const last=swHistory.pop();if(!last)return;
+  const key=swKey(last.it);
+  swSeen=swSeen.filter(k=>k!==key);
+  if(last.like)swLiked=swLiked.filter(k=>k!==key);
+  swDeck.unshift(last.it);swSave();swRender();
+}
+function swOpenTop(){const it=swDeck[0];if(it)openDet(it.id,it.kind);}
+function swReshow(){swSeen=swSeen.filter(k=>swLiked.includes(k));swSave();swHistory=[];swBuildDeck();swRender();}
+function swReset(){swLiked=[];swSeen=[];swHistory=[];swSave();swBuildDeck();swRender();}
+function renderSwipe(){if(!swDeck.length&&!swHistory.length)swBuildDeck();swRender();}
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('page-swipe').classList.contains('active'))return;
+  if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;
+  if(document.querySelector('.open'))return;
+  if(e.key==='ArrowRight'){e.preventDefault();swDecide(true);}
+  else if(e.key==='ArrowLeft'){e.preventDefault();swDecide(false);}
+});
+swLoad();
 
 // ── INIT ──
 renderCards();
